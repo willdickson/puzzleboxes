@@ -1,0 +1,15 @@
+
+regions:
+    mode: grid
+    num_x: 7
+    num_y: 5
+    init_x: 79 
+    init_y: 65 
+    step_x: 81 
+    step_y: 86.5
+    size_x: 78 
+    size_y: 78 
+
+
+
+
