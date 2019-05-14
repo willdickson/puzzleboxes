@@ -9,8 +9,10 @@ import std_msgs.msg
 import cv2
 import threading
 import yaml
+import time
 
 
+from tracking_region import TrackingRegion
 from region_visualizer import RegionVisualizer
 
 
@@ -33,10 +35,10 @@ class PuzzleBoxes(object):
         # Read parameters
         self.param_path = '/puzzleboxes'
         self.get_param()
+        print(self.param)
 
-        self.region_data_list = self.get_regions_from_server()
-        self.region_visualizer = RegionVisualizer(self.param)
-        #self.tracking_region_list = [TrackingRegion(i,p) for i,p in enumerate(self.region_data_list)]
+        self.create_tracking_regions()
+        self.region_visualizer = RegionVisualizer(self.tracking_region_list)
 
         # Subscribe to tracked objects topic
         tracked_objects_topic = '/multi_tracker/{}/tracked_objects'.format(nodenum)
@@ -52,7 +54,7 @@ class PuzzleBoxes(object):
         self.image_lock = threading.Lock()
         self.image_sub = rospy.Subscriber('/camera/image_mono', Image, self.image_callback)
         #self.data_pub = rospy.Publisher('puzzleboxes_data', PuzzleBoxesData, queue_size=10) 
-        
+
     def get_param(self):
         self.param = rospy.get_param(self.param_path, None)
         if self.param is None:
@@ -60,21 +62,17 @@ class PuzzleBoxes(object):
             with open(param_file_path,'r') as f:
                 self.param = yaml.load(f)
 
-    def get_regions_from_server(self):
-    #    # Load from parameter server
-    #    if not rospy.has_param(self.region_param_path):
-    #        rospy.logerr('region parameters not found on server!!!')
-    #    region_data_list = convert_region_data_list(rospy.get_param(self.region_param_path))
-    #    # Set to defaults in missing
-    #    if self.default_param is not None:
-    #        region_data_list_tmp = [dict(self.default_param) for d in region_data_list]
-    #        for region_data_tmp, region_data in zip(region_data_list_tmp, region_data_list):
-    #            region_data_tmp.update(region_data)
-    #        region_data_list = region_data_list_tmp
-    #        #for region_data in region_data_list:
-    #        #    print(region_data)
-    #    return region_data_list
-        return []
+    def create_tracking_regions(self):
+        self.tracking_region_list = []
+        for region_index, center_pt in enumerate(self.param['regions']['centers']):
+            cx, cy = center_pt
+            # Get lower left and upper right corners of the tracking region
+            x0 = int(cx - 0.5*self.param['regions']['width'])
+            y0 = int(cy - 0.5*self.param['regions']['height'])
+            x1 = int(cx + 0.5*self.param['regions']['width'])
+            y1 = int(cy + 0.5*self.param['regions']['height'])
+            region_param = {'x0': x0, 'x1': x1, 'y0': y0, 'y1': y1}
+            self.tracking_region_list.append(TrackingRegion(region_index, region_param))
 
     def image_callback(self,ros_img): 
         cv_img = self.bridge.imgmsg_to_cv2(ros_img,desired_encoding='mono8')
@@ -93,28 +91,29 @@ class PuzzleBoxes(object):
             while (self.objects_queue.qsize() > 0):
                 # Process tracked objects
                 tracked_objects = self.objects_queue.get()
-
-                #self.process_regions(tracked_objects)
+                self.process_regions(tracked_objects)
 
             # Visualize regions and objecs
             with self.image_lock:
                 self.region_visualizer.update(self.latest_image, [])
 
-#    def process_regions(self,tracked_objects):
-#
-#        ros_time_now = rospy.Time.now()
-#        current_time = ros_time_now.to_time()
-#        elapsed_time = current_time - self.start_time 
-#
+    def process_regions(self,tracked_objects):
+
+        ros_time_now = rospy.Time.now()
+        current_time = ros_time_now.to_time()
+        elapsed_time = current_time - self.start_time 
+
 #        header = std_msgs.msg.Header()
 #        header.stamp = ros_time_now
 #
 #        msg = PathIntegration3x3Data()
 #        msg.header = header
-#
-#        for tracking_region in self.tracking_region_list: 
-#            region_data = tracking_region.update(elapsed_time, tracked_objects)
+
+        for tracking_region in self.tracking_region_list: 
+            tracking_region.update(elapsed_time, tracked_objects)
 #            msg.tracking_region_data.append(region_data)
+#        print()
+
 #
 #        self.data_pub.publish(msg)
                 
