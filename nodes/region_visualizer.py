@@ -9,8 +9,8 @@ class RegionVisualizer(object):
         self.is_first_image = True
         self.window_name = 'tracking_regions'
         self.window_num_pad = 1,11
-        self.window_region_color = (0,255,0)
-        self.window_object_color = (255,255,0)
+        self.window_region_color = (193, 188, 27)
+        self.window_object_color = (31, 165, 49)
         self.window_object_radius = 5
 
         self.find_centers = False 
@@ -56,7 +56,7 @@ class RegionVisualizer(object):
 
 
 
-    def update(self, image, tracked_objects):
+    def update(self, image, tracked_obj_list):
         if image is None:
             return
         if self.is_first_image: 
@@ -84,9 +84,9 @@ class RegionVisualizer(object):
                 ty = y0 + self.window_num_pad[1]
                 cv2.putText(image,'{}'.format(tracking_region.number), (tx,ty), cv2.FONT_HERSHEY_SIMPLEX, 0.4, self.window_region_color)
                 # Draw object found in region if any
-                if tracking_region.object is not None:
-                    x = int(tracking_region.object.position.x)
-                    y = int(tracking_region.object.position.y)
+                if tracking_region.obj is not None:
+                    x = int(tracking_region.obj.position.x)
+                    y = int(tracking_region.obj.position.y)
                     cv2.circle(image, (x,y), self.window_object_radius, self.window_object_color)
             cv2.imshow(self.window_name,image)
 

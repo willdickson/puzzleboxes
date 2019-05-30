@@ -10,6 +10,8 @@ import cv2
 import threading
 import yaml
 import time
+import pprint
+pp = pprint.PrettyPrinter(indent=4)
 
 
 from tracking_region import TrackingRegion
@@ -35,7 +37,7 @@ class PuzzleBoxes(object):
         # Read parameters
         self.param_path = '/puzzleboxes'
         self.get_param()
-        print(self.param)
+        self.check_param()
 
         self.create_tracking_regions()
         self.region_visualizer = RegionVisualizer(self.tracking_region_list)
@@ -62,17 +64,29 @@ class PuzzleBoxes(object):
             with open(param_file_path,'r') as f:
                 self.param = yaml.load(f)
 
+    def check_param(self):
+        assert len(self.param['regions']['centers']) == len(self.param['regions']['protocols'])
+
+
     def create_tracking_regions(self):
         self.tracking_region_list = []
-        for region_index, center_pt in enumerate(self.param['regions']['centers']):
-            cx, cy = center_pt
+        center_list =  self.param['regions']['centers']
+        protocol_list =  self.param['regions']['protocols']
+        for region_index, region_data in enumerate(zip(center_list, protocol_list)):
+            region_center_pt, region_protocol = region_data
+            cx, cy = region_center_pt
             # Get lower left and upper right corners of the tracking region
             x0 = int(cx - 0.5*self.param['regions']['width'])
             y0 = int(cy - 0.5*self.param['regions']['height'])
             x1 = int(cx + 0.5*self.param['regions']['width'])
             y1 = int(cy + 0.5*self.param['regions']['height'])
-            region_param = {'x0': x0, 'x1': x1, 'y0': y0, 'y1': y1}
-            self.tracking_region_list.append(TrackingRegion(region_index, region_param))
+            region_param = {
+                    'index'    : region_index,
+                    'protocol' : region_protocol,
+                    'center'   : {'cx': cx, 'cy': cy, }, 
+                    'roi'      : {'x0': x0, 'x1': x1, 'y0': y0, 'y1': y1}, 
+            }
+            self.tracking_region_list.append(TrackingRegion(region_param))
 
     def image_callback(self,ros_img): 
         cv_img = self.bridge.imgmsg_to_cv2(ros_img,desired_encoding='mono8')
