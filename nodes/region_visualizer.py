@@ -9,8 +9,8 @@ class RegionVisualizer(object):
         self.is_first_image = True
         self.window_name = 'tracking_regions'
         self.window_num_pad = 1,11
-        self.window_region_color = (193, 188, 27)
-        self.window_object_color = (31, 165, 49)
+        self.window_region_color = (255, 255, 255)
+        self.window_object_color = (255, 255, 255)
         self.window_object_radius = 5
 
         self.find_centers = False 
@@ -40,10 +40,10 @@ class RegionVisualizer(object):
                 centroid_list.append([int(centroidX),int(centroidY)])
                 
         contours_image = cv2.cvtColor(image_gray,cv2.COLOR_GRAY2BGR)
-        cv2.drawContours(contours_image,filtered_contour_list,-1,(0,0,255),2)
+        cv2.drawContours(contours_image,filtered_contour_list,-1,(255,255,255),2)
 
         for cx,cy in centroid_list:
-            cv2.circle(contours_image,(cx,cy),3,(0,255,0))
+            cv2.circle(contours_image,(cx,cy),3,(255,255,255))
 
         self.centers_count += 1
         if self.centers_count == 50:

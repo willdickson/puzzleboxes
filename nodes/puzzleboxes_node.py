@@ -54,7 +54,8 @@ class PuzzleBoxes(object):
         self.bridge = CvBridge()
         self.latest_image = None
         self.image_lock = threading.Lock()
-        self.image_sub = rospy.Subscriber('/camera/image_mono', Image, self.image_callback)
+        #self.image_sub = rospy.Subscriber('/camera/image_mono', Image, self.image_callback)
+        self.image_sub = rospy.Subscriber('/camera/image_raw', Image, self.image_callback)
         #self.data_pub = rospy.Publisher('puzzleboxes_data', PuzzleBoxesData, queue_size=10) 
 
     def get_param(self):
@@ -81,10 +82,11 @@ class PuzzleBoxes(object):
             x1 = int(cx + 0.5*self.param['regions']['width'])
             y1 = int(cy + 0.5*self.param['regions']['height'])
             region_param = {
-                    'index'    : region_index,
-                    'protocol' : region_protocol,
-                    'center'   : {'cx': cx, 'cy': cy, }, 
-                    'roi'      : {'x0': x0, 'x1': x1, 'y0': y0, 'y1': y1}, 
+                    'index'         :  region_index,
+                    'protocol'      :  region_protocol,
+                    'center'        :  {'cx': cx, 'cy': cy, }, 
+                    'roi'           :  {'x0': x0, 'x1': x1, 'y0': y0, 'y1': y1}, 
+                    'default_param' :  self.param['default_param'],
             }
             self.tracking_region_list.append(TrackingRegion(region_param))
 

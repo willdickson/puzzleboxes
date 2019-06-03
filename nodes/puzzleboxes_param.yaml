@@ -54,75 +54,69 @@ regions:
 
         # [ classifer,  led_policy]
          
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  1  
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  2  
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  3  
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  4  
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  5  
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  6  
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  7  
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  8  
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  9  
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  10 
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  11 
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  12 
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  13 
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  14 
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  15 
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  16 
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  17 
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  18 
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  19 
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  20 
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  21 
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  22 
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  23 
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  24 
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  25 
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  26 
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  27 
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  28 
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  29 
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  30 
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  31 
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  32 
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  33 
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  34 
-        - [[center, {radius: 5}], [pulse, {on: 1, off: 9}]]   #  35 
+        - [[center, {radius: 18}],             [pulse, {on: 1, off: 9}]]   #  1  
+        - [[center, {height: 78 , width: 10}],  [pulse, {on: 1, off: 9}]]   #  2  
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  3  
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  4  
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  5  
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  6  
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  7  
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  8  
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  9  
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  10 
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  11 
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  12 
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  13 
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  14 
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  15 
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  16 
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  17 
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  18 
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  19 
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  20 
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  21 
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  22 
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  23 
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  24 
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  25 
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  26 
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  27 
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  28 
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  29 
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  30 
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  31 
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  32 
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  33 
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  34 
+        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  35 
    
     
-# Classifiers defaults 
-# --------------------------------------------
-center:
-    name: ctr
-        
 
-# LED policy defaults
-# --------------------------------------------
+default_param:
 
-instant:
-    color: [255, 0 , 0]
+    classifier:
 
-pulse:
-    color: [150, 0 , 0] 
+        by_type:
+            center:
+                display_name: ctr
 
-empty:
-    color: [0, 150, 0]
+    led_scheduler:
 
-yoked:
-    color: [0, 0, 150]
+        global:
+            brightness: 100
+            delay: 0
+            chance: 1
 
-
-
-
-        
-        
-# Notes:
-# -------------------------------------------
-# LED pulse structure:
-    # None (control)
-    # on time & off time
-    # instantaneous
-    # delay
-    # brightness
-    # chance
+        by_type:
+            instant:
+                color: [130, 20 , 20]
+            
+            pulse:
+                color: [130, 20 , 20] 
+            
+            empty:
+                color: [120, 120, 120]
+            
+            yoked:
+                color: [190, 190, 0]
+            
