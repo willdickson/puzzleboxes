@@ -27,8 +27,8 @@ class CenterClassifier(Classifier):
                     self.state = True
                 else:
                     self.state = False
-                if self.param['index'] == 1:
-                    print('dx: {:0.1f} dy: {:0.1f}, tw: {}, th: {}, state: {}'.format(abs(cx-x), abs(cy-y), test_w, test_h, self.state))
+                #if self.param['index'] == 1:
+                #    print('dx: {:0.1f} dy: {:0.1f}, tw: {}, th: {}, state: {}'.format(abs(cx-x), abs(cy-y), test_w, test_h, self.state))
         else:
             self.state = False
 

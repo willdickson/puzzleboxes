@@ -64,6 +64,8 @@ class PuzzleBoxes(object):
             param_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),self.Default_Param_File)
             with open(param_file_path,'r') as f:
                 self.param = yaml.load(f)
+            #print(self.param)
+
 
     def check_param(self):
         assert len(self.param['regions']['centers']) == len(self.param['regions']['protocols'])
@@ -111,13 +113,15 @@ class PuzzleBoxes(object):
 
             # Visualize regions and objecs
             with self.image_lock:
-                self.region_visualizer.update(self.latest_image, [])
+                self.region_visualizer.update(self.latest_image)
 
     def process_regions(self,tracked_objects):
 
         ros_time_now = rospy.Time.now()
         current_time = ros_time_now.to_time()
         elapsed_time = current_time - self.start_time 
+
+        print(elapsed_time)
 
 #        header = std_msgs.msg.Header()
 #        header.stamp = ros_time_now

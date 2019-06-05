@@ -54,41 +54,41 @@ regions:
 
         # [ classifer,  led_policy]
          
-        - [[center, {radius: 18}],             [pulse, {on: 1, off: 9}]]   #  1  
-        - [[center, {height: 78 , width: 10}],  [pulse, {on: 1, off: 9}]]   #  2  
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  3  
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  4  
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  5  
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  6  
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  7  
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  8  
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  9  
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  10 
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  11 
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  12 
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  13 
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  14 
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  15 
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  16 
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  17 
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  18 
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  19 
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  20 
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  21 
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  22 
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  23 
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  24 
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  25 
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  26 
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  27 
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  28 
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  29 
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  30 
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  31 
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  32 
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  33 
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  34 
-        - [[center, {radius: 5}],              [pulse, {on: 1, off: 9}]]   #  35 
+        - [[center, {radius: 18}],              [pulse, {on_t: 1, off_t: 9}]]   #  1  
+        - [[center, {height: 78 , width: 10}],  [instant, {}]]                  #  2  
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  3  
+        - [[center, {radius: 5}],               [pulse, {on_t: 2, off_t: 8}]]   #  4  
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  5  
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  6  
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  7  
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  8  
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  9  
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  10 
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  11 
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  12 
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  13 
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  14 
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  15 
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  16 
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  17 
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  18 
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  19 
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  20 
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  21 
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  22 
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  23 
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  24 
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  25 
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  26 
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  27 
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  28 
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  29 
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  30 
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  31 
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  32 
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  33 
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  34 
+        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  35 
    
     
 
