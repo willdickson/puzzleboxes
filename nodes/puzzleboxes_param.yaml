@@ -1,18 +1,11 @@
 
-# Trial schedule 
-# --------------------------------------------
-schedule:
-    # [ mode,  duration (min)]
-    - [disabled, 1]
-    - [enabled,  10]
-    - [disabled, 2]
+trial_param_file: Puzzlebox_Experiment_Sample.csv
 
-
-# Tracking Regions
-# ---------------------------------------------
 regions:
+
     width: 78 
-    height: 78 
+    height: 84 
+
     centers:
         - [77, 65]     # 1
         - [76, 151]    # 2
@@ -50,47 +43,6 @@ regions:
         - [566, 325]   # 34
         - [566, 412]   # 35
 
-    protocols: 
-
-        # [ classifer,  led_policy]
-         
-        - [[center, {radius: 18}],              [pulse, {on_t: 1, off_t: 9}]]   #  1  
-        - [[center, {height: 78 , width: 10}],  [instant, {}]]                  #  2  
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  3  
-        - [[center, {radius: 5}],               [pulse, {on_t: 2, off_t: 8}]]   #  4  
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  5  
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  6  
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  7  
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  8  
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  9  
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  10 
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  11 
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  12 
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  13 
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  14 
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  15 
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  16 
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  17 
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  18 
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  19 
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  20 
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  21 
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  22 
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  23 
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  24 
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  25 
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  26 
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  27 
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  28 
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  29 
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  30 
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  31 
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  32 
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  33 
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  34 
-        - [[center, {radius: 5}],               [pulse, {on_t: 1, off_t: 9}]]   #  35 
-   
-    
 
 default_param:
 
@@ -98,7 +50,7 @@ default_param:
 
         by_type:
             center:
-                display_name: ctr
+                display_name: CTR
 
     led_scheduler:
 
@@ -109,14 +61,10 @@ default_param:
 
         by_type:
             instant:
-                color: [130, 20 , 20]
+                display_name: INST
             
             pulse:
-                color: [130, 20 , 20] 
-            
-            empty:
-                color: [120, 120, 120]
+                display_name: PULSE 
             
             yoked:
-                color: [190, 190, 0]
-            
+                display_name: YOKED

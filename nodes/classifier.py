@@ -1,4 +1,5 @@
 from __future__ import print_function 
+import yaml
 from default_param_obj import DefaultParamObj
 
 class Classifier(DefaultParamObj):
@@ -28,11 +29,13 @@ class Classifier(DefaultParamObj):
     
     @property
     def instance_specific_param(self):
-        return self.param['protocol'][0][1]
+        #return self.param['protocol'][0][1]
+        return yaml.load(self.param['protocol']['classifier']['param'])
 
     @property
     def type(self):
-        return self.param['protocol'][0][0]
+        #return self.param['protocol'][0][0]
+        return self.param['protocol']['classifier']['type']
 
 
     def update(self,t,current_object):

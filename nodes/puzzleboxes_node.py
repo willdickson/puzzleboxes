@@ -4,18 +4,20 @@ import os
 import Queue
 import roslib
 import rospy
-import numpy
 import std_msgs.msg
 import cv2
 import threading
 import yaml
 import time
 import pprint
+import pandas as pd
+import numpy as np
 pp = pprint.PrettyPrinter(indent=4)
 
 
 from tracking_region import TrackingRegion
 from region_visualizer import RegionVisualizer
+from trial_scheduler import TrialScheduler
 
 
 from sensor_msgs.msg import Image
@@ -32,7 +34,6 @@ class PuzzleBoxes(object):
         self.objects_queue = Queue.Queue()
 
         rospy.init_node('puzzleboxes')
-        self.start_time = rospy.Time.now().to_time()
 
         # Read parameters
         self.param_path = '/puzzleboxes'
@@ -41,6 +42,7 @@ class PuzzleBoxes(object):
 
         self.create_tracking_regions()
         self.region_visualizer = RegionVisualizer(self.tracking_region_list)
+        self.trial_scheduler = TrialScheduler(self.param['trial_schedule'])
 
         # Subscribe to tracked objects topic
         tracked_objects_topic = '/multi_tracker/{}/tracked_objects'.format(nodenum)
@@ -64,7 +66,43 @@ class PuzzleBoxes(object):
             param_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),self.Default_Param_File)
             with open(param_file_path,'r') as f:
                 self.param = yaml.load(f)
-            #print(self.param)
+        self.load_trial_param_from_csv()
+
+    def load_trial_param_from_csv(self):
+        df = pd.read_csv(self.param['trial_param_file'])
+
+        # Load protocol paramters
+        protocol_list = []
+        for i in range(len(self.param['regions']['centers'])):
+            protocol = {}
+            if type(df['Fly'][i]) == str:
+                protocol['fly'] = df['Fly'][i]
+                protocol['classifier'] = {
+                        'type'  :  df['Classifier'][i].lower(), 
+                        'param' :  df['Classifier Param'][i].lower(),
+                        }
+                protocol['led_policy'] = {
+                        'type'  :  df['LED Policy'][i].lower(), 
+                        'param' :  df['LED Policy Param'][i].lower(),
+                        }
+            else:
+                protocol['fly'] = '' 
+                protocol['classifier'] = {'type': 'empty', 'param': '{}'}
+                protocol['led_policy'] = {'type': 'empty', 'param': '{}'}
+            protocol_list.append(protocol)
+        self.param['regions']['protocols'] = protocol_list
+
+        # Load trail state and duration parameters
+        trial_schedule = []
+        for i in range(df.shape[0]):
+            if type(df['Trial State'][i]) == str:
+                trial_dict = {}
+                trial_dict['state'] = df['Trial State'][i]
+                trial_dict['duration'] = df['State Duration'][i]
+                trial_schedule.append(trial_dict)
+            else:
+                break
+        self.param['trial_schedule'] = trial_schedule
 
 
     def check_param(self):
@@ -105,7 +143,12 @@ class PuzzleBoxes(object):
 
     def run(self):
 
+        self.start_time = rospy.Time.now().to_time()
+        print(self.param['trial_schedule'])
+
+
         while not rospy.is_shutdown():
+            time.sleep(0.1)
             while (self.objects_queue.qsize() > 0):
                 # Process tracked objects
                 tracked_objects = self.objects_queue.get()
@@ -121,7 +164,9 @@ class PuzzleBoxes(object):
         current_time = ros_time_now.to_time()
         elapsed_time = current_time - self.start_time 
 
-        print(elapsed_time)
+
+
+        #print(elapsed_time)
 
 #        header = std_msgs.msg.Header()
 #        header.stamp = ros_time_now

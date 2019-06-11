@@ -1,4 +1,5 @@
 from __future__  import print_function
+import yaml 
 from default_param_obj import DefaultParamObj
 
 class LedScheduler(DefaultParamObj):
@@ -8,6 +9,8 @@ class LedScheduler(DefaultParamObj):
         self.led_scheduler_param = self.get_param() 
         self.value = 0
         self.state = False
+        self.is_enabled = False
+        self.led_off(force=True)
 
     @property
     def global_default_param(self):
@@ -30,20 +33,29 @@ class LedScheduler(DefaultParamObj):
     
     @property
     def instance_specific_param(self):
-        return self.param['protocol'][1][1]
+        #return self.param['protocol'][1][1]
+        return yaml.load(self.param['protocol']['led_policy']['param'])
 
     @property
     def type(self):
-        return self.param['protocol'][1][0]
+        #return self.param['protocol'][1][0]
+        return self.param['protocol']['led_policy']['type']
 
+
+    def enabled(self,value):
+        if self.state == True and value == False:
+            self.led_off()
+        self.enabled = value
 
     def led_on(self):
+        if not self.is_enabled:
+            return
         if not self.state:
             self.state  = True
             #print('region: {} led on', self.param['index'])
 
-    def led_off(self):
-        if self.state:
+    def led_off(self,force=False):
+        if self.state or force:
             self.state = False
             #print('region: {} led off', self.param['index'])
 

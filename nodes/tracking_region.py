@@ -14,11 +14,11 @@ class TrackingRegion(RectRegion):
         self.obj = None
 
     @property
-    def lower_left(self):
+    def upper_left(self):
         return self.x0, self.y0
 
     @property
-    def upper_right(self):
+    def lower_right(self):
         return self.x1, self.y1
 
     @property
@@ -27,8 +27,7 @@ class TrackingRegion(RectRegion):
         return self.param['index']+1
 
     def led_enable(self,value):
-        """ TODO enable/disable led output """
-        pass
+        self.protocol.led_enable(value)
 
     def update(self,t,tracked_obj_list): 
         contained_obj_list = [obj for obj in tracked_obj_list if self.contains(obj)]
