@@ -1,5 +1,5 @@
 
-trial_param_file: Puzzlebox_Experiment_Sample.csv
+trial_param_file: '/home/flyranch-corfas/catkin_ws/src/puzzleboxes/example_trial_param/puzzlebox_trial - example.csv'
 
 regions:
 

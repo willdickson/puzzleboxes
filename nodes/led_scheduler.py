@@ -4,12 +4,12 @@ from default_param_obj import DefaultParamObj
 
 class LedScheduler(DefaultParamObj):
 
-    def __init__(self,param):
+    def __init__(self,param,devices):
         self.param = param
+        self.devices = devices
         self.led_scheduler_param = self.get_param() 
         self.value = 0
         self.state = False
-        self.is_enabled = False
         self.led_off(force=True)
 
     @property
@@ -33,12 +33,10 @@ class LedScheduler(DefaultParamObj):
     
     @property
     def instance_specific_param(self):
-        #return self.param['protocol'][1][1]
         return yaml.load(self.param['protocol']['led_policy']['param'])
 
     @property
     def type(self):
-        #return self.param['protocol'][1][0]
         return self.param['protocol']['led_policy']['type']
 
 
@@ -48,16 +46,16 @@ class LedScheduler(DefaultParamObj):
         self.enabled = value
 
     def led_on(self):
-        if not self.is_enabled:
-            return
         if not self.state:
             self.state  = True
-            #print('region: {} led on', self.param['index'])
+            index = self.param['index']
+            brightness = self.led_scheduler_param['brightness']
+            self.devices['led_controller'].set_led(index,brightness)
 
     def led_off(self,force=False):
         if self.state or force:
             self.state = False
-            #print('region: {} led off', self.param['index'])
+            self.devices['led_controller'].set_led(self.param['index'],0)
 
     def update(self, t, current_object, classifier_state):
         pass

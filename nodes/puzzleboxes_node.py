@@ -9,10 +9,10 @@ import cv2
 import threading
 import yaml
 import time
-import pprint
 import pandas as pd
 import numpy as np
-pp = pprint.PrettyPrinter(indent=4)
+
+from phidgets1031_led_controller import LedController
 
 
 from tracking_region import TrackingRegion
@@ -30,6 +30,9 @@ class PuzzleBoxes(object):
     Default_Param_File = 'puzzleboxes_param.yaml'
 
     def __init__(self,nodenum=1):
+
+        self.devices = {}
+        self.devices['led_controller'] = LedController()
 
         self.objects_queue = Queue.Queue()
 
@@ -128,7 +131,7 @@ class PuzzleBoxes(object):
                     'roi'           :  {'x0': x0, 'x1': x1, 'y0': y0, 'y1': y1}, 
                     'default_param' :  self.param['default_param'],
             }
-            self.tracking_region_list.append(TrackingRegion(region_param))
+            self.tracking_region_list.append(TrackingRegion(region_param,self.devices))
 
     def image_callback(self,ros_img): 
         cv_img = self.bridge.imgmsg_to_cv2(ros_img,desired_encoding='mono8')
@@ -143,30 +146,35 @@ class PuzzleBoxes(object):
 
     def run(self):
 
+        elapsed_time = 0.0 
         self.start_time = rospy.Time.now().to_time()
-        print(self.param['trial_schedule'])
-
+        self.trial_scheduler.set_state(0,elapsed_time)
 
         while not rospy.is_shutdown():
-            time.sleep(0.1)
+
             while (self.objects_queue.qsize() > 0):
+
+                # Get current time
+                ros_time_now = rospy.Time.now()
+                current_time = ros_time_now.to_time()
+                elapsed_time = current_time - self.start_time 
+
+                self.trial_scheduler.update(elapsed_time)
+
                 # Process tracked objects
                 tracked_objects = self.objects_queue.get()
-                self.process_regions(tracked_objects)
+                self.process_regions(elapsed_time, tracked_objects)
 
             # Visualize regions and objecs
             with self.image_lock:
-                self.region_visualizer.update(self.latest_image)
+                self.region_visualizer.update(elapsed_time, self.latest_image, self.trial_scheduler)
 
-    def process_regions(self,tracked_objects):
+            if self.trial_scheduler.done:
+                # Call ROS shutdown
+                break
 
-        ros_time_now = rospy.Time.now()
-        current_time = ros_time_now.to_time()
-        elapsed_time = current_time - self.start_time 
+    def process_regions(self, elapsed_time, tracked_objects):
 
-
-
-        #print(elapsed_time)
 
 #        header = std_msgs.msg.Header()
 #        header.stamp = ros_time_now
@@ -175,7 +183,8 @@ class PuzzleBoxes(object):
 #        msg.header = header
 
         for tracking_region in self.tracking_region_list: 
-            tracking_region.update(elapsed_time, tracked_objects)
+            led_enabled = self.trial_scheduler.led_enabled
+            tracking_region.update(elapsed_time, tracked_objects, led_enabled)
 #            msg.tracking_region_data.append(region_data)
 #        print()
 

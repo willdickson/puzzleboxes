@@ -1,3 +1,4 @@
+from __future__ import print_function
 import cv2
 import numpy as np
 import yaml
@@ -39,7 +40,7 @@ class RegionVisualizer(object):
         self.fontsize = 0.3
         #self.PILfont = ImageFont.truetype('/home/flyranch-corfas/catkin_ws/src/puzzleboxes/fonts/visitor2.ttf',12)
         
-    def update(self, image):
+    def update(self, elapsed_time, image, trial_scheduler):
         if image is None:
             return
 
@@ -86,6 +87,9 @@ class RegionVisualizer(object):
         led_scheduler_type = tracking_region.protocol.led_scheduler.type
         if led_scheduler_type == 'instant' or led_scheduler_type == 'pulse':
             led_scheduler_name = 'PULSE' #UPDATE WITH DYNAMIC VERSION
+            # Getting parameters for classifier or led_scheduler (example)
+            #led_scheduler_param = tracking_region.protocol.led_scheduler.led_scheduler_param
+            #print(led_scheduler_param['display_name'])
             annotation_color = self.yellow
             text_size = cv2.getTextSize(led_scheduler_name, self.font, self.fontsize,1)[0]
             tx = x1 - text_size[0]
@@ -143,18 +147,23 @@ class RegionVisualizer(object):
     def draw_classifier(self, image, tracking_region):
         classifier_type = tracking_region.protocol.classifier.type
         classifier_param = tracking_region.protocol.classifier.classifier_param
+        led_scheduler_type = tracking_region.protocol.led_scheduler.type
+        if led_scheduler_type == 'instant' or led_scheduler_type == 'pulse':
+            color = self.classifier_color
+        else:
+            color = self.gray
         if classifier_type == 'center':
             cx = tracking_region.param['center']['cx']
             cy = tracking_region.param['center']['cy']
             if 'radius' in classifier_param:
                 radius = classifier_param['radius']
-                cv2.circle(image, (cx,cy), radius, self.classifier_color,self.classifier_thickness)
+                cv2.circle(image, (cx,cy), radius, color,self.classifier_thickness)
             elif 'height' in classifier_param:
                 height = classifier_param['height']
                 width = classifier_param['width']
                 bottom_left = (cx-width/2,cy+height/2)
                 top_right = (cx+width/2,cy-height/2)
-                cv2.rectangle(image, bottom_left, top_right, self.classifier_color,self.classifier_thickness)
+                cv2.rectangle(image, bottom_left, top_right, color,self.classifier_thickness)
         elif classifier_type == 'empty':
             pass
 

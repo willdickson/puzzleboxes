@@ -8,9 +8,10 @@ from protocol import Protocol
 
 class TrackingRegion(RectRegion):
 
-    def __init__(self, param):
+    def __init__(self, param, devices):
         super(TrackingRegion,self).__init__(param)
-        self.protocol = Protocol(param) 
+        self.devices = devices
+        self.protocol = Protocol(param,devices) 
         self.obj = None
 
     @property
@@ -29,13 +30,13 @@ class TrackingRegion(RectRegion):
     def led_enable(self,value):
         self.protocol.led_enable(value)
 
-    def update(self,t,tracked_obj_list): 
+    def update(self,t,tracked_obj_list, led_enabled): 
         contained_obj_list = [obj for obj in tracked_obj_list if self.contains(obj)]
         if contained_obj_list:
             self.obj = max(contained_obj_list, key=attrgetter('size'))
         else:
             self.obj = None
-        self.protocol.update(t,self.obj)
+        self.protocol.update(t,self.obj, led_enabled)
 
 
 
