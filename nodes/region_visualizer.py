@@ -17,7 +17,7 @@ class RegionVisualizer(object):
         self.green = ( 0, 153,  30)
         self.yellow = (0,200,255)
         self.white = (200, 200, 200)
-        self.gray = (120, 120, 120)
+        self.gray = (80, 80, 80)
         
         # Mapping from (classifier.state, led.state) to object color
         self.states_to_object_color = {
@@ -71,8 +71,8 @@ class RegionVisualizer(object):
         cv2.putText(image,'{}'.format(elapsed_t), (10,10), self.font, self.fontsize, self.yellow)
         
     def display_trial_state(self, image):
-        trial_state_name = 'ENABLED' #UPDATE WITH DYNAMIC VERSION
-        if 'ENABLED' in trial_state_name:
+        trial_state_name = 'enabled' #UPDATE WITH DYNAMIC VERSION
+        if 'enabled' in trial_state_name:
             display_color = self.red
         else:
             display_color = self.gray
@@ -86,11 +86,8 @@ class RegionVisualizer(object):
         # annotate led type (and set annotation color)
         led_scheduler_type = tracking_region.protocol.led_scheduler.type
         if led_scheduler_type == 'instant' or led_scheduler_type == 'pulse':
-            led_scheduler_name = 'PULSE' #UPDATE WITH DYNAMIC VERSION
-            # Getting parameters for classifier or led_scheduler (example)
-            #led_scheduler_param = tracking_region.protocol.led_scheduler.led_scheduler_param
-            #print(led_scheduler_param['display_name'])
             annotation_color = self.yellow
+            led_scheduler_name = tracking_region.protocol.led_scheduler.led_scheduler_param['display_name']
             text_size = cv2.getTextSize(led_scheduler_name, self.font, self.fontsize,1)[0]
             tx = x1 - text_size[0]
             ty = y1 - 2
@@ -112,7 +109,7 @@ class RegionVisualizer(object):
             ty = y0 + 8
             cv2.putText(image,'{}'.format(tracking_region.number), (tx,ty), self.font, self.fontsize, annotation_color)
             # Annotate classifier name
-            classifier_name = 'CTR' #UPDATE WITH DYNAMIC VERSION
+            classifier_name = tracking_region.protocol.classifier.classifier_param['display_name']
             tx = x0 + 1
             ty = y1 - 2
             cv2.putText(image,'{}'.format(classifier_name), (tx,ty), self.font, self.fontsize, annotation_color)

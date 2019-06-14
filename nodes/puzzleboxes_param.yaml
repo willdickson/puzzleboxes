@@ -1,6 +1,10 @@
 
 trial_param_file: '/home/flyranch-corfas/catkin_ws/src/puzzleboxes/example_trial_param/puzzlebox_trial - example.csv'
 
+param_pub_period: 60.0
+
+kill_at_finish: false
+
 regions:
 
     width: 78 

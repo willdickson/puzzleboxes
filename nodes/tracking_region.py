@@ -4,7 +4,7 @@ from rect_region import RectRegion
 from operator import attrgetter
 from protocol import Protocol
 
-#from path_integration_3x3.msg import TrackingRegionData
+from puzzleboxes.msg import RegionData
 
 class TrackingRegion(RectRegion):
 
@@ -36,7 +36,20 @@ class TrackingRegion(RectRegion):
             self.obj = max(contained_obj_list, key=attrgetter('size'))
         else:
             self.obj = None
-        self.protocol.update(t,self.obj, led_enabled)
+        self.protocol.update(t, self.obj, led_enabled)
+
+        msg = RegionData()
+        if self.obj is not None:
+            msg.object_found = True
+            msg.x = self.obj.position.x
+            msg.y = self.obj.position.y
+        else:
+            msg.object_found = False
+            msg.x = 0.0
+            msg.y = 0.0
+        msg.classifier = self.protocol.classifier.state
+        msg.led = self.protocol.led_scheduler.state
+        return msg
 
 
 

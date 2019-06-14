@@ -8,22 +8,24 @@ import std_msgs.msg
 import cv2
 import threading
 import yaml
+import json
 import time
+import datetime
 import pandas as pd
 import numpy as np
 
 from phidgets1031_led_controller import LedController
 
-
 from tracking_region import TrackingRegion
 from region_visualizer import RegionVisualizer
 from trial_scheduler import TrialScheduler
-
 
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
 from multi_tracker.msg import Trackedobject, Trackedobjectlist
+from puzzleboxes.msg import PuzzleboxesData
+from puzzleboxes.msg import RegionData
 
 class PuzzleBoxes(object):
 
@@ -33,7 +35,6 @@ class PuzzleBoxes(object):
 
         self.devices = {}
         self.devices['led_controller'] = LedController()
-
         self.objects_queue = Queue.Queue()
 
         rospy.init_node('puzzleboxes')
@@ -59,17 +60,25 @@ class PuzzleBoxes(object):
         self.bridge = CvBridge()
         self.latest_image = None
         self.image_lock = threading.Lock()
-        #self.image_sub = rospy.Subscriber('/camera/image_mono', Image, self.image_callback)
         self.image_sub = rospy.Subscriber('/camera/image_raw', Image, self.image_callback)
-        #self.data_pub = rospy.Publisher('puzzleboxes_data', PuzzleBoxesData, queue_size=10) 
+        self.data_pub = rospy.Publisher('/puzzleboxes_data', PuzzleboxesData, queue_size=10) 
+        self.param_pub = rospy.Publisher('/puzzleboxes_param', std_msgs.msg.String,queue_size=10)
+        self.param_pub_timer = rospy.Timer(rospy.Duration(secs=self.param['param_pub_period']), self.on_param_pub_timer)
+
+    def on_param_pub_timer(self,event):
+        self.param_pub.publish(json.dumps(self.param))
 
     def get_param(self):
         self.param = rospy.get_param(self.param_path, None)
         if self.param is None:
             param_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),self.Default_Param_File)
+            rospy.logwarn('puzzleboxes param not on server ... loading file')
+            rospy.logwarn('param file = {}'.format(param_file_path))
             with open(param_file_path,'r') as f:
                 self.param = yaml.load(f)
         self.load_trial_param_from_csv()
+        now = datetime.datetime.now()
+        self.param['datetime']= now.strftime('%m%d%y_%H%M%S')
 
     def load_trial_param_from_csv(self):
         df = pd.read_csv(self.param['trial_param_file'])
@@ -145,7 +154,6 @@ class PuzzleBoxes(object):
             self.objects_queue.put(data.tracked_objects)
 
     def run(self):
-
         elapsed_time = 0.0 
         self.start_time = rospy.Time.now().to_time()
         self.trial_scheduler.set_state(0,elapsed_time)
@@ -163,7 +171,7 @@ class PuzzleBoxes(object):
 
                 # Process tracked objects
                 tracked_objects = self.objects_queue.get()
-                self.process_regions(elapsed_time, tracked_objects)
+                self.process_regions(ros_time_now, elapsed_time, tracked_objects)
 
             # Visualize regions and objecs
             with self.image_lock:
@@ -173,23 +181,26 @@ class PuzzleBoxes(object):
                 # Call ROS shutdown
                 break
 
-    def process_regions(self, elapsed_time, tracked_objects):
+        self.clean_up()
 
+        if self.param['kill_at_finish']:
+            os.system('rosnode kill -a')
 
-#        header = std_msgs.msg.Header()
-#        header.stamp = ros_time_now
-#
-#        msg = PathIntegration3x3Data()
-#        msg.header = header
-
+    def clean_up(self):
         for tracking_region in self.tracking_region_list: 
-            led_enabled = self.trial_scheduler.led_enabled
-            tracking_region.update(elapsed_time, tracked_objects, led_enabled)
-#            msg.tracking_region_data.append(region_data)
-#        print()
+            tracking_region.protocol.led_scheduler.led_off()
 
-#
-#        self.data_pub.publish(msg)
+    def process_regions(self, ros_time_now, elapsed_time, tracked_objects):
+        led_enabled = self.trial_scheduler.led_enabled
+        msg = PuzzleboxesData()
+        msg.header.stamp = ros_time_now
+        msg.elapsed_time = elapsed_time
+        msg.region_data_list = []
+        msg.led_enabled = led_enabled
+        for tracking_region in self.tracking_region_list: 
+            region_data = tracking_region.update(elapsed_time, tracked_objects, led_enabled)
+            msg.region_data_list.append(region_data)
+        self.data_pub.publish(msg)
                 
 
 # Utility functions
