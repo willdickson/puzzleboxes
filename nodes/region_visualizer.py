@@ -61,7 +61,7 @@ class RegionVisualizer(object):
             self.draw_object(image, tracking_region)
         
         # self.print_elapsed_time(image, t)
-        self.display_trial_state(image)
+        self.display_trial_state(image, trial_scheduler)
         
         cv2.imshow(self.window_name,image)
         cv2.waitKey(1)
@@ -70,13 +70,12 @@ class RegionVisualizer(object):
         elapsed_t = t
         cv2.putText(image,'{}'.format(elapsed_t), (10,10), self.font, self.fontsize, self.yellow)
         
-    def display_trial_state(self, image):
-        trial_state_name = 'enabled' #UPDATE WITH DYNAMIC VERSION
-        if 'enabled' in trial_state_name:
+    def display_trial_state(self, image, trial_scheduler):
+        if trial_scheduler.state == 'enabled':
             display_color = self.red
         else:
             display_color = self.gray
-        cv2.putText(image,'{}'.format(trial_state_name), (570,12), self.font, self.fontsize*1.3, display_color)
+        cv2.putText(image,'{}'.format(trial_scheduler.state), (570,12), self.font, self.fontsize*1.3, display_color)
     
     
     def annotate_region(self, image, tracking_region):
@@ -114,11 +113,12 @@ class RegionVisualizer(object):
             ty = y1 - 2
             cv2.putText(image,'{}'.format(classifier_name), (tx,ty), self.font, self.fontsize, annotation_color)
             # annotate fly genotype
-            genotype_name = 'Gr43a' #UPDATE WITH DYNAMIC VERSION
-            text_size = cv2.getTextSize(genotype_name, self.font, self.fontsize,1)[0]
+            genotype_name = tracking_region.protocol.param['protocol']['fly']
+            genotype_display_name = tracking_region.param['default_param']['fly']['display_name'][genotype_name]
+            text_size = cv2.getTextSize(genotype_display_name, self.font, self.fontsize,1)[0]
             tx = x1 - text_size[0]
             ty = y0 + 8
-            cv2.putText(image,'{}'.format(genotype_name), (tx,ty), self.font, self.fontsize, annotation_color)
+            cv2.putText(image,'{}'.format(genotype_display_name), (tx,ty), self.font, self.fontsize, annotation_color)
             
             #cv2_im_rgb = cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
             #pil_im = Image.fromarray(cv2_im_rgb)

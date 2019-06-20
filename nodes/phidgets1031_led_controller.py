@@ -9,7 +9,7 @@ class LedController(LedControllerBase):
         super(LedController,self).__init__()
         self.device = Phidgets.Devices.LED.LED()
         self.device.openPhidget()
-        self.device.waitForAttach(1000)
+        self.device.waitForAttach(2000)
 
     def device_set_led(self,index,value):
         self.device.setBrightness(index,value)

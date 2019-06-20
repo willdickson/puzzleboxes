@@ -8,6 +8,17 @@ class TrialScheduler(object):
         self.check_states()
         self.set_state(0,0.0)
         self.done = False
+        self.display()
+
+    def display(self):
+        t_start = 0.0
+        rospy.logwarn('trial schedule')
+        for value_dict in self.param:
+            state = value_dict['state']
+            duration = value_dict['duration']
+            t_stop =  t_start  + duration
+            rospy.logwarn('state: {}, start_time: {}, stop_time: {}'.format(state,t_start, t_stop))
+            t_start = t_stop
 
     def update(self, t):
         if t >= self.start_t + self.duration:

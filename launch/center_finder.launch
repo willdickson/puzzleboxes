@@ -1,0 +1,10 @@
+<launch>
+    <node pkg="puzzleboxes" name="center_finder" type="center_finder_node.py">
+        <param name="threshold" type="int" value="50"/>
+        <param name="min_area" type="int" value="100"/>
+        <param name="cmp_margin" type="int" value="5"/>
+        <param name="filter_coeff" type="double" value="0.05"/>
+        <param name="center_disp_radius" type="int" value="3"/>
+        <param name="output_file" type="str" value="$(env HOME)/centers.yaml"/>
+    </node>
+</launch>

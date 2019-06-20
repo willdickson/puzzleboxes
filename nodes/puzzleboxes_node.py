@@ -76,9 +76,16 @@ class PuzzleBoxes(object):
             rospy.logwarn('param file = {}'.format(param_file_path))
             with open(param_file_path,'r') as f:
                 self.param = yaml.load(f)
+
+        self.load_region_centers()
         self.load_trial_param_from_csv()
         now = datetime.datetime.now()
         self.param['datetime']= now.strftime('%m%d%y_%H%M%S')
+
+    def load_region_centers(self):
+        with open(self.param['regions']['centers_file'],'r') as f:
+            centers = yaml.load(f)
+        self.param['regions']['centers'] = centers
 
     def load_trial_param_from_csv(self):
         df = pd.read_csv(self.param['trial_param_file'])
@@ -160,19 +167,21 @@ class PuzzleBoxes(object):
 
         while not rospy.is_shutdown():
 
-            while (self.objects_queue.qsize() > 0):
+            # Get current time
+            ros_time_now = rospy.Time.now()
+            current_time = ros_time_now.to_time()
+            elapsed_time = current_time - self.start_time 
+            self.trial_scheduler.update(elapsed_time)
 
-                # Get current time
+            while (self.objects_queue.qsize() > 0):
+                # Process tracked objects
                 ros_time_now = rospy.Time.now()
                 current_time = ros_time_now.to_time()
                 elapsed_time = current_time - self.start_time 
-
                 self.trial_scheduler.update(elapsed_time)
 
-                # Process tracked objects
                 tracked_objects = self.objects_queue.get()
                 self.process_regions(ros_time_now, elapsed_time, tracked_objects)
-
             # Visualize regions and objecs
             with self.image_lock:
                 self.region_visualizer.update(elapsed_time, self.latest_image, self.trial_scheduler)
@@ -202,32 +211,6 @@ class PuzzleBoxes(object):
             msg.region_data_list.append(region_data)
         self.data_pub.publish(msg)
                 
-
-# Utility functions
-# -------------------------------------------------------------------------------------------------------
-
-#def convert_region_data_list(region_data_list):
-#    return [convert_region_data(r) for r in region_data_list]
-#
-#def convert_region_data(raw_region_data):
-#    region_data = dict(raw_region_data)
-#    region_data['leds'] = convert_led_list(region_data['leds'])
-#    return region_data
-#
-#def convert_led_list(led_data_list):
-#    return [convert_led_data(d) for d in led_data_list]
-#
-#def convert_led_data(led_data): 
-#    x = led_data['x']
-#    y = led_data['y']
-#    w = led_data['w']
-#    h = led_data['h']
-#    x0 = x - w/2
-#    y0 = y - h/2
-#    x1 = x + w/2
-#    y1 = y + h/2
-#    return {'x0':x0, 'y0':y0, 'x1':x1, 'y1':y1, 'chan': led_data['chan']}
-
 
 
 # -------------------------------------------------------------------------------------------------------

@@ -1,52 +1,15 @@
 
-trial_param_file: '/home/flyranch-corfas/catkin_ws/src/puzzleboxes/example_trial_param/puzzlebox_trial - example.csv'
+trial_param_file: '/home/flyranch-corfas/devel/src/puzzleboxes_trial - example.csv'
 
 param_pub_period: 60.0
 
-kill_at_finish: false
+kill_at_finish: true 
 
 regions:
 
     width: 78 
     height: 84 
-
-    centers:
-        - [77, 65]     # 1
-        - [76, 151]    # 2
-        - [76, 239]    # 3 
-        - [76, 326]    # 4
-        - [77, 413]    # 5
-        - [158, 64]    # 6
-        - [157, 151]   # 7
-        - [157, 239]   # 8
-        - [157, 326]   # 9
-        - [158, 414]   # 10
-        - [239, 63]    # 11
-        - [239, 150]   # 12
-        - [239, 239]   # 13
-        - [239, 326]   # 14
-        - [239, 414]   # 15
-        - [321, 63]    # 16
-        - [321, 150]   # 17
-        - [321, 238]   # 18
-        - [321, 326]   # 19
-        - [321, 414]   # 20
-        - [403, 63]    # 21
-        - [404, 150]   # 22
-        - [403, 238]   # 23
-        - [403, 326]   # 24
-        - [403, 414]   # 25
-        - [485, 64]    # 26
-        - [485, 151]   # 27
-        - [485, 238]   # 28
-        - [485, 326]   # 29
-        - [485, 413]   # 30
-        - [566, 64]    # 31
-        - [566, 151]   # 32
-        - [566, 238]   # 33
-        - [566, 325]   # 34
-        - [566, 412]   # 35
-
+    centers_file: '/home/flyranch-corfas/devel/src/centers.yaml'
 
 default_param:
 
@@ -72,3 +35,9 @@ default_param:
             
             yoked:
                 display_name: YOKED
+
+    fly:
+        display_name:
+            Gr43a:   Gr43a
+            HCS:     HCS
+            Gr43a_+: het
