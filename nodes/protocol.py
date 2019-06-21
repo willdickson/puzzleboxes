@@ -1,6 +1,7 @@
 from __future__ import print_function
 from empty_classifier import EmptyClassifier
 from center_classifier import CenterClassifier
+from tunnels_classifier import TunnelsClassifier
 from empty_led_scheduler import EmptyLedScheduler
 from pulse_led_scheduler import PulseLedScheduler
 from instant_led_scheduler import InstantLedScheduler
@@ -10,6 +11,7 @@ class Protocol(object):
     ClassifierTable = {
             'empty'  :  EmptyClassifier,
             'center' :  CenterClassifier,
+            'tunnels':  TunnelsClassifier,
              
             }
 
@@ -20,7 +22,7 @@ class Protocol(object):
             }
 
     def __init__(self,param, devices):
-        self.param = param
+        self.param = dict(param)
         self.devices = devices
         self.create_classifier()
         self.create_led_scheduler()

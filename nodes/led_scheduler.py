@@ -1,11 +1,12 @@
 from __future__  import print_function
 import yaml 
 from default_param_obj import DefaultParamObj
+import rospy
 
 class LedScheduler(DefaultParamObj):
 
     def __init__(self,param,devices):
-        self.param = param
+        super(LedScheduler,self). __init__(param)
         self.devices = devices
         self.led_scheduler_param = self.get_param() 
         self.value = 0

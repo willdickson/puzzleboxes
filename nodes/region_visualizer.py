@@ -2,7 +2,12 @@ from __future__ import print_function
 import cv2
 import numpy as np
 import yaml
-#from PIL import ImageFont, ImageDraw, Image
+import rospy
+
+from PIL import Image
+from PIL import ImageFont
+from PIL import ImageDraw
+
 
 class RegionVisualizer(object):
 
@@ -38,7 +43,9 @@ class RegionVisualizer(object):
 
         self.font = cv2.FONT_HERSHEY_SIMPLEX
         self.fontsize = 0.3
-        #self.PILfont = ImageFont.truetype('/home/flyranch-corfas/catkin_ws/src/puzzleboxes/fonts/visitor2.ttf',12)
+        
+        self.PILfont = ImageFont.truetype('/home/flyranch-corfas/catkin_ws/src/puzzleboxes/fonts/visitor2.ttf',12)
+        self.PILfont_large = ImageFont.truetype('/home/flyranch-corfas/catkin_ws/src/puzzleboxes/fonts/visitor2.ttf',20)
         
     def update(self, elapsed_time, image, trial_scheduler):
         if image is None:
@@ -55,77 +62,120 @@ class RegionVisualizer(object):
                 cv2.moveWindow('centers_image', 120, 120)
                 cv2.resizeWindow('centers_image', 800,600)
         
-        for tracking_region in self.tracking_region_list: 
-            self.annotate_region(image,tracking_region)
+        self.display_text = {}
+                
+        for tracking_region in self.tracking_region_list:
+            self.annotate_region(image,tracking_region, self.display_text)
             self.draw_classifier(image,tracking_region)
             self.draw_object(image, tracking_region)
         
-        # self.print_elapsed_time(image, t)
-        self.display_trial_state(image, trial_scheduler)
+        image = self.draw_display_text(image, elapsed_time, trial_scheduler, self.display_text)
         
+
+#        self.print_elapsed_time(image, elapsed_time)
+        #image = self.print_elapsed_time(image, elapsed_time)
+#        self.display_trial_state(image, trial_scheduler)
+
         cv2.imshow(self.window_name,image)
         cv2.waitKey(1)
-
-    def print_elapsed_time(self, image, t):
-        elapsed_t = t
-        cv2.putText(image,'{}'.format(elapsed_t), (10,10), self.font, self.fontsize, self.yellow)
         
-    def display_trial_state(self, image, trial_scheduler):
+    def print_elapsed_time(self, image, t):
+        t_min = int(np.floor(t/60.0))
+        t_sec = int(60.0*(t/60.0 - t_min))
+        cv2.putText(image,'{}:{:02d}'.format(t_min, t_sec), (10,10), self.font, self.fontsize+0.1, self.yellow)
+        
+    def draw_display_text(self, image, elapsed_time, trial_scheduler, display_text):
+        image_pil = Image.fromarray(image)
+        draw = ImageDraw.Draw(image_pil)
+        # elapsed time
+        t_min = int(np.floor(elapsed_time/60.0))
+        t_sec = int(60.0*(elapsed_time/60.0 - t_min))
+        text = '{}:{:02d}'.format(t_min, t_sec)
+        color = self.yellow
+        display_font = self.PILfont_large
+        draw.text((25,5),text=text,font=display_font,fill=color)
+        # trial state
+        text = trial_scheduler.state
         if trial_scheduler.state == 'enabled':
-            display_color = self.red
+            color = self.red
         else:
-            display_color = self.gray
-        cv2.putText(image,'{}'.format(trial_scheduler.state), (570,12), self.font, self.fontsize*1.3, display_color)
+            color = self.gray
+        display_font = self.PILfont_large
+        draw.text((550,5),text=text,font=display_font,fill=color)
+        # annotate regions
+        for arena in self.display_text:
+            for item in self.display_text[arena]:
+                try:
+                    posX = display_text[arena][item]['posX']
+                    posY = display_text[arena][item]['posY']
+                    text = display_text[arena][item]['text']
+                    color = display_text[arena][item]['color']
+                    font = display_text[arena][item]['font']
+                    draw.text((posX,posY),text=text,font=font,fill=color)
+                except:
+                    pass
+        return cv2.cvtColor(np.array(image_pil),cv2.COLOR_RGB2BGR)
     
-    
-    def annotate_region(self, image, tracking_region):
+    def annotate_region(self, image, tracking_region, display_text):
         x0, y0 = tracking_region.upper_left
         x1, y1 = tracking_region.lower_right
-        
-        # annotate led type (and set annotation color)
+        arena = tracking_region.number
+                
+        display_text[arena]={
+            'led'           :   {},
+            'classifier'    :   {},
+            'fly'           :   {},
+            'region'        :   {},
+            }
+            
+        # annotate led type
         led_scheduler_type = tracking_region.protocol.led_scheduler.type
+        color = self.gray
         if led_scheduler_type == 'instant' or led_scheduler_type == 'pulse':
-            annotation_color = self.yellow
+            color = self.yellow
             led_scheduler_name = tracking_region.protocol.led_scheduler.led_scheduler_param['display_name']
-            text_size = cv2.getTextSize(led_scheduler_name, self.font, self.fontsize,1)[0]
-            tx = x1 - text_size[0]
-            ty = y1 - 2
-            cv2.putText(image,'{}'.format(led_scheduler_name), (tx,ty), self.font, self.fontsize, annotation_color)
-        else:
-            annotation_color = self.gray
+            display_text[arena]['led']['text'] = led_scheduler_name
+            text_size = self.PILfont.getsize(led_scheduler_name)
+            display_text[arena]['led']['font'] = self.PILfont
+            display_text[arena]['led']['posX'] = x1 - text_size[0]
+            display_text[arena]['led']['posY'] = y1 - text_size[1] - 1
+            display_text[arena]['led']['color'] = self.yellow
         #if led_scheduler_type == 'yoked':
-        #    # Annotate yoked region
-        #    tx = x1 - self.window_num_pad[0]
-        #    ty = y1 - self.window_num_pad[1]
         #    cv2.putText(image,'{}'.format(yoked_region), (tx,ty), self.font, self.fontsize, self.red)
         
-        # draw bounding box on all regions with classifier and annotate classifier type and genotype
+        # Annotate classifier type 
         classifier_type = tracking_region.protocol.classifier.type
         if classifier_type != 'empty':
-            cv2.rectangle(image, (x0,y0), (x1,y1), annotation_color, 1)
-            # Annotate region number
-            tx = x0 + 1
-            ty = y0 + 8
-            cv2.putText(image,'{}'.format(tracking_region.number), (tx,ty), self.font, self.fontsize, annotation_color)
-            # Annotate classifier name
             classifier_name = tracking_region.protocol.classifier.classifier_param['display_name']
-            tx = x0 + 1
-            ty = y1 - 2
-            cv2.putText(image,'{}'.format(classifier_name), (tx,ty), self.font, self.fontsize, annotation_color)
-            # annotate fly genotype
+            display_text[arena]['classifier']['text'] = classifier_name
+            text_size = self.PILfont.getsize(classifier_name)
+            display_text[arena]['classifier']['font'] = self.PILfont
+            display_text[arena]['classifier']['posX'] = x0 + 2
+            display_text[arena]['classifier']['posY'] = y1 - text_size[1] - 1
+            display_text[arena]['classifier']['color'] = self.yellow
+        
+            # Annotate fly genotype
             genotype_name = tracking_region.protocol.param['protocol']['fly']
             genotype_display_name = tracking_region.param['default_param']['fly']['display_name'][genotype_name]
-            text_size = cv2.getTextSize(genotype_display_name, self.font, self.fontsize,1)[0]
-            tx = x1 - text_size[0]
-            ty = y0 + 8
-            cv2.putText(image,'{}'.format(genotype_display_name), (tx,ty), self.font, self.fontsize, annotation_color)
+            display_text[arena]['fly']['text'] = genotype_display_name
+            text_size = self.PILfont.getsize(genotype_display_name)
+            display_text[arena]['fly']['font'] = self.PILfont
+            display_text[arena]['fly']['posX'] = x1 - text_size[0]
+            display_text[arena]['fly']['posY'] = y0 + 1
+            display_text[arena]['fly']['color'] = self.yellow
+            if genotype_name =='HCS' or genotype_name == 'Gr43a_+':
+                display_text[arena]['fly']['color'] = self.gray
             
-            #cv2_im_rgb = cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
-            #pil_im = Image.fromarray(cv2_im_rgb)
-            #draw = ImageDraw.Draw(pil_im)
-            #draw.text((83,199), genotype_name, font=self.PILfont)
-            #image = cv2.cvtColor(np.array(pil_im),cv2.COLOR_RGB2BGR)
-            #cv2.imshow('test',image)
+            # Annotate region number
+            display_text[arena]['region']['text'] = str(arena)
+            text_size = self.PILfont.getsize(str(arena))
+            display_text[arena]['region']['font'] = self.PILfont
+            display_text[arena]['region']['posX'] = x0 + 2
+            display_text[arena]['region']['posY'] = y0 + 1
+            display_text[arena]['region']['color'] = display_text[arena]['fly']['color']
+            
+            # Draw bounding box
+            cv2.rectangle(image, (x0,y0), (x1,y1), color, 1)
 
     def draw_object(self, image, tracking_region): 
         if tracking_region.obj is not None:
@@ -144,6 +194,7 @@ class RegionVisualizer(object):
     def draw_classifier(self, image, tracking_region):
         classifier_type = tracking_region.protocol.classifier.type
         classifier_param = tracking_region.protocol.classifier.classifier_param
+        # Determine color based on LED
         led_scheduler_type = tracking_region.protocol.led_scheduler.type
         if led_scheduler_type == 'instant' or led_scheduler_type == 'pulse':
             color = self.classifier_color
@@ -161,6 +212,27 @@ class RegionVisualizer(object):
                 bottom_left = (cx-width/2,cy+height/2)
                 top_right = (cx+width/2,cy-height/2)
                 cv2.rectangle(image, bottom_left, top_right, color,self.classifier_thickness)
+        elif classifier_type == 'tunnels':
+            cx = tracking_region.param['center']['cx']
+            cy = tracking_region.param['center']['cy']
+            radius = classifier_param['radius']
+            tunnels = classifier_param['tunnels']
+            if 'left' in tunnels:
+                x = cx - radius
+                cv2.line(image, (x,cy-5), (x,cy-12), color, self.classifier_thickness)
+                cv2.line(image, (x,cy+5), (x,cy+12), color, self.classifier_thickness)
+            if 'right' in tunnels:
+                x = cx + radius
+                cv2.line(image, (x,cy-5), (x,cy-12), color, self.classifier_thickness)
+                cv2.line(image, (x,cy+5), (x,cy+12), color, self.classifier_thickness)
+            if 'top' in tunnels:
+                y = cy - radius
+                cv2.line(image, (cx-5,y), (cx-12,y), color, self.classifier_thickness)
+                cv2.line(image, (cx+5,y), (cx+12,y), color, self.classifier_thickness)
+            if 'bottom' in tunnels:
+                y = cy + radius
+                cv2.line(image, (cx-5,y), (cx-12,y), color, self.classifier_thickness)
+                cv2.line(image, (cx+5,y), (cx+12,y), color, self.classifier_thickness)
         elif classifier_type == 'empty':
             pass
 

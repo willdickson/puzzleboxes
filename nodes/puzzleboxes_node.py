@@ -111,7 +111,7 @@ class PuzzleBoxes(object):
             protocol_list.append(protocol)
         self.param['regions']['protocols'] = protocol_list
 
-        # Load trail state and duration parameters
+        # Load trial state and duration parameters
         trial_schedule = []
         for i in range(df.shape[0]):
             if type(df['Trial State'][i]) == str:

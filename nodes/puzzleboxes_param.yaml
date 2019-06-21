@@ -3,7 +3,7 @@ trial_param_file: '/home/flyranch-corfas/devel/src/puzzleboxes_trial - example.c
 
 param_pub_period: 60.0
 
-kill_at_finish: true 
+kill_at_finish: false 
 
 regions:
 
@@ -18,6 +18,8 @@ default_param:
         by_type:
             center:
                 display_name: CTR
+            tunnels:
+                display_name: TUN
 
     led_scheduler:
 
@@ -40,4 +42,4 @@ default_param:
         display_name:
             Gr43a:   Gr43a
             HCS:     HCS
-            Gr43a_+: het
+            Gr43a_+: HET
