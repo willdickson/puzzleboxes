@@ -14,6 +14,8 @@ import datetime
 import pandas as pd
 import numpy as np
 
+from blob_finder import BlobFinder
+
 from phidgets1031_led_controller import LedController
 
 from tracking_region import TrackingRegion
@@ -27,6 +29,7 @@ from multi_tracker.msg import Trackedobject, Trackedobjectlist
 from puzzleboxes.msg import PuzzleboxesData
 from puzzleboxes.msg import RegionData
 
+
 class PuzzleBoxes(object):
 
     Default_Param_File = 'puzzleboxes_param.yaml'
@@ -35,6 +38,7 @@ class PuzzleBoxes(object):
 
         self.devices = {}
         self.devices['led_controller'] = LedController()
+        self.image_queue = Queue.Queue()
         self.objects_queue = Queue.Queue()
 
         rospy.init_node('puzzleboxes')
@@ -49,16 +53,16 @@ class PuzzleBoxes(object):
         self.trial_scheduler = TrialScheduler(self.param['trial_schedule'])
 
         # Subscribe to tracked objects topic
-        tracked_objects_topic = '/multi_tracker/{}/tracked_objects'.format(nodenum)
-        self.tracked_objects_sub = rospy.Subscriber(
-                tracked_objects_topic, 
-                Trackedobjectlist, 
-                self.tracked_objects_callback
-                )
+        #tracked_objects_topic = '/multi_tracker/{}/tracked_objects'.format(nodenum)
+        #self.tracked_objects_sub = rospy.Subscriber(
+        #        tracked_objects_topic, 
+        #        Trackedobjectlist, 
+        #        self.tracked_objects_callback
+        #        )
 
         # Subscribe to camera images
         self.bridge = CvBridge()
-        self.latest_image = None
+        #self.latest_image = None
         self.image_lock = threading.Lock()
         self.image_sub = rospy.Subscriber('/camera/image_raw', Image, self.image_callback)
         self.data_pub = rospy.Publisher('/puzzleboxes_data', PuzzleboxesData, queue_size=10) 
@@ -94,6 +98,7 @@ class PuzzleBoxes(object):
         protocol_list = []
         for i in range(len(self.param['regions']['centers'])):
             protocol = {}
+            #print(i, df['Fly'][i], df['LED Policy Param'][i])
             if type(df['Fly'][i]) == str:
                 protocol['fly'] = df['Fly'][i]
                 protocol['classifier'] = {
@@ -151,40 +156,76 @@ class PuzzleBoxes(object):
 
     def image_callback(self,ros_img): 
         cv_img = self.bridge.imgmsg_to_cv2(ros_img,desired_encoding='mono8')
-        cv_img_bgr = cv2.cvtColor(cv_img, cv2.COLOR_GRAY2BGR)
-        with self.image_lock:
-            self.latest_image = cv_img_bgr
+        self.image_queue.put(cv_img)
 
-    def tracked_objects_callback(self,data):
-        number_of_objects = len(data.tracked_objects)
-        if number_of_objects > 0: 
-            self.objects_queue.put(data.tracked_objects)
+        #cv_img_bgr = cv2.cvtColor(cv_img, cv2.COLOR_GRAY2BGR)
+        #with self.image_lock:
+        #    self.latest_image = cv_img_bgr
+
+    #def tracked_objects_callback(self,data):
+    #    number_of_objects = len(data.tracked_objects)
+    #    if number_of_objects > 0: 
+    #        self.objects_queue.put(data.tracked_objects)
 
     def run(self):
+
         elapsed_time = 0.0 
         self.start_time = rospy.Time.now().to_time()
         self.trial_scheduler.set_state(0,elapsed_time)
 
+        # DEVEL
+        # ---------------------------
+        bg_image = np.load(self.param['regions']['bg_image_file'])
+        blob_finder = BlobFinder(threshold=20,minArea=5, maxArea=1000)
+        rate_tmp = rospy.Rate(20.0)
+        # ----------------------------
+
+
         while not rospy.is_shutdown():
 
-            # Get current time
+            ## Get current time
             ros_time_now = rospy.Time.now()
             current_time = ros_time_now.to_time()
             elapsed_time = current_time - self.start_time 
-            self.trial_scheduler.update(elapsed_time)
 
-            while (self.objects_queue.qsize() > 0):
+            while (self.image_queue.qsize() > 0):
+
                 # Process tracked objects
                 ros_time_now = rospy.Time.now()
                 current_time = ros_time_now.to_time()
                 elapsed_time = current_time - self.start_time 
-                self.trial_scheduler.update(elapsed_time)
 
-                tracked_objects = self.objects_queue.get()
+                image = self.image_queue.get()
+                diff_image = cv2.absdiff(image,bg_image)
+                blob_list, blob_image = blob_finder.find(diff_image)
+                tracked_objects = []
+                for blob in blob_list:
+                    obj = Trackedobject()
+                    obj.position.x = blob['centroidX']
+                    obj.position.y = blob['centroidY']
+                    obj.size = blob['area']
+                    tracked_objects.append(obj)
+                # ----------------------------
+            
+                self.trial_scheduler.update(elapsed_time)
                 self.process_regions(ros_time_now, elapsed_time, tracked_objects)
-            # Visualize regions and objecs
-            with self.image_lock:
-                self.region_visualizer.update(elapsed_time, self.latest_image, self.trial_scheduler)
+                bgr_image = cv2.cvtColor(image,cv2.COLOR_GRAY2BGR)
+                self.region_visualizer.update(elapsed_time, bgr_image, self.trial_scheduler)
+
+            #self.trial_scheduler.update(elapsed_time)
+
+            #while (self.objects_queue.qsize() > 0):
+            #    # Process tracked objects
+            #    ros_time_now = rospy.Time.now()
+            #    current_time = ros_time_now.to_time()
+            #    elapsed_time = current_time - self.start_time 
+            #    self.trial_scheduler.update(elapsed_time)
+
+            #    tracked_objects = self.objects_queue.get()
+            #    self.process_regions(ros_time_now, elapsed_time, tracked_objects)
+            ## Visualize regions and objecs
+            #with self.image_lock:
+            #    self.region_visualizer.update(elapsed_time, self.latest_image, self.trial_scheduler)
 
             if self.trial_scheduler.done:
                 # Call ROS shutdown
@@ -192,8 +233,8 @@ class PuzzleBoxes(object):
 
         self.clean_up()
 
-        if self.param['kill_at_finish']:
-            os.system('rosnode kill -a')
+        #if self.param['kill_at_finish']:
+        #    os.system('rosnode kill -a')
 
     def clean_up(self):
         for tracking_region in self.tracking_region_list: 
