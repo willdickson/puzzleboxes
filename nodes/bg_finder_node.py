@@ -21,7 +21,7 @@ class BgFinderNode(object):
         self.update_dt = rospy.get_param('/bg_finder/update_dt', 2.0)
         self.max_len = rospy.get_param('/bg_finder/max_len', 50)
         default_output_file = os.path.join(os.path.abspath(os.curdir),'bg_image.npy')
-        self.output_file = rospy.get_param('/center_finder/output_file', default_output_file)
+        self.output_file = rospy.get_param('/bg_finder/output_file', default_output_file)
 
         self.bg_list = []
         self.bg_window = 'background'
@@ -65,6 +65,7 @@ class BgFinderNode(object):
                     else:
                         bg_img = self.bg_list[0]
                     cv2.imshow(self.bg_window,bg_img)
+                    cv2.moveWindow(self.bg_window, 200, 250)
                     cv2.waitKey(1)
 
         rospy.logwarn('saving background image to {}'.format(self.output_file))

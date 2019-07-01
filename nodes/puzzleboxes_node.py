@@ -173,13 +173,12 @@ class PuzzleBoxes(object):
         self.start_time = rospy.Time.now().to_time()
         self.trial_scheduler.set_state(0,elapsed_time)
 
-        # DEVEL
-        # ---------------------------
         bg_image = np.load(self.param['regions']['bg_image_file'])
-        blob_finder = BlobFinder(threshold=20,minArea=5, maxArea=1000)
-        rate_tmp = rospy.Rate(20.0)
-        # ----------------------------
-
+        blob_finder = BlobFinder(
+                threshold=self.param['tracking']['threshold'],
+                minArea=self.param['tracking']['min_area'], 
+                maxArea=self.param['tracking']['max_area'],
+                )
 
         while not rospy.is_shutdown():
 
