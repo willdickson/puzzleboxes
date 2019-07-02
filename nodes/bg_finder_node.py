@@ -60,7 +60,8 @@ class BgFinderNode(object):
                     if len(self.bg_list) > self.max_len:
                         self.bg_list.pop(0)
                     if len(self.bg_list) > 2:
-                        bg_img = np.median(np.array(self.bg_list), axis=0)
+                        #bg_img = np.median(np.array(self.bg_list), axis=0)
+                        bg_img = np.max(np.array(self.bg_list), axis=0)
                         bg_img = bg_img.astype(np.uint8)
                     else:
                         bg_img = self.bg_list[0]

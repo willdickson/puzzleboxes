@@ -65,12 +65,21 @@ class PuzzleBoxes(object):
         #self.latest_image = None
         self.image_lock = threading.Lock()
         self.image_sub = rospy.Subscriber('/camera/image_raw', Image, self.image_callback)
+
+        # Load background image
+        self.bg_image = np.load(self.param['regions']['bg_image_file'])
+
+        # Create publishers
         self.data_pub = rospy.Publisher('/puzzleboxes_data', PuzzleboxesData, queue_size=10) 
         self.param_pub = rospy.Publisher('/puzzleboxes_param', std_msgs.msg.String,queue_size=10)
-        self.param_pub_timer = rospy.Timer(rospy.Duration(secs=self.param['param_pub_period']), self.on_param_pub_timer)
+        self.bg_image_pub = rospy.Publisher('/puzzleboxes_bg_image', Image, queue_size=10)
+        self.parm_pub_timer = rospy.Timer(rospy.Duration(secs=self.param['param_pub_period']), self.on_param_pub_timer)
+
 
     def on_param_pub_timer(self,event):
         self.param_pub.publish(json.dumps(self.param))
+        bg_image_ros = self.bridge.cv2_to_imgmsg(self.bg_image)
+        self.bg_image_pub.publish(bg_image_ros)
 
     def get_param(self):
         self.param = rospy.get_param(self.param_path, None)
@@ -173,7 +182,6 @@ class PuzzleBoxes(object):
         self.start_time = rospy.Time.now().to_time()
         self.trial_scheduler.set_state(0,elapsed_time)
 
-        bg_image = np.load(self.param['regions']['bg_image_file'])
         blob_finder = BlobFinder(
                 threshold=self.param['tracking']['threshold'],
                 minArea=self.param['tracking']['min_area'], 
@@ -195,7 +203,7 @@ class PuzzleBoxes(object):
                 elapsed_time = current_time - self.start_time 
 
                 image = self.image_queue.get()
-                diff_image = cv2.absdiff(image,bg_image)
+                diff_image = cv2.absdiff(image,self.bg_image)
                 blob_list, blob_image = blob_finder.find(diff_image)
                 tracked_objects = []
                 for blob in blob_list:
