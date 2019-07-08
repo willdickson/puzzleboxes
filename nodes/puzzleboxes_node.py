@@ -25,7 +25,6 @@ from trial_scheduler import TrialScheduler
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
-from multi_tracker.msg import Trackedobject, Trackedobjectlist
 from puzzleboxes.msg import PuzzleboxesData
 from puzzleboxes.msg import RegionData
 
@@ -172,14 +171,8 @@ class PuzzleBoxes(object):
 
         while not rospy.is_shutdown():
 
-            ## Get current time
-            ros_time_now = rospy.Time.now()
-            current_time = ros_time_now.to_time()
-            elapsed_time = current_time - self.start_time 
-
             while (self.image_queue.qsize() > 0):
 
-                # Process tracked objects
                 ros_time_now = rospy.Time.now()
                 current_time = ros_time_now.to_time()
                 elapsed_time = current_time - self.start_time 
@@ -189,13 +182,11 @@ class PuzzleBoxes(object):
                 blob_list, blob_image = blob_finder.find(diff_image)
                 tracked_objects = []
                 for blob in blob_list:
-                    obj = Trackedobject()
+                    obj = TrackedObject()  # Replace this with simple class
                     obj.position.x = blob['centroidX']
                     obj.position.y = blob['centroidY']
                     obj.size = blob['area']
                     tracked_objects.append(obj)
-                # ----------------------------
-            
                 self.trial_scheduler.update(elapsed_time)
                 self.process_regions(ros_time_now, elapsed_time, tracked_objects)
                 bgr_image = cv2.cvtColor(image,cv2.COLOR_GRAY2BGR)
@@ -227,6 +218,25 @@ class PuzzleBoxes(object):
         self.data_pub.publish(msg)
                 
 
+# Utility Classes
+# -----------------------------------------------------------------------------------------------------
+
+class TrackedObject(object):
+
+    def __init__(self):
+        self.position = ObjectPosition()
+
+    def __str__(self):
+        return 'TrackedObject: {}'.format(self.position)
+
+class ObjectPosition(object):
+
+    def __init__(self):
+        self.x = 0
+        self.y = 0
+
+    def __str__(self):
+        return 'x: {}, y: {}'.format(self.x, self.y)
 
 # -------------------------------------------------------------------------------------------------------
 if __name__ == '__main__':
