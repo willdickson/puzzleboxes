@@ -1,15 +1,21 @@
 
 trial_param_file: '/home/flyranch-corfas/devel/src/puzzleboxes_trial - example.csv'
 
-param_pub_period: 60.0
+param_pub_period: 1.0
 
-kill_at_finish: false 
+kill_at_finish: true 
+
+tracking:
+    threshold: 40
+    min_area: 2
+    max_area: 1000
 
 regions:
 
     width: 78 
     height: 84 
     centers_file: '/home/flyranch-corfas/devel/src/centers.yaml'
+    bg_image_file: '/home/flyranch-corfas/devel/src/bg_image.npy'
 
 default_param:
 

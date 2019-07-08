@@ -52,17 +52,8 @@ class PuzzleBoxes(object):
         self.region_visualizer = RegionVisualizer(self.tracking_region_list)
         self.trial_scheduler = TrialScheduler(self.param['trial_schedule'])
 
-        # Subscribe to tracked objects topic
-        #tracked_objects_topic = '/multi_tracker/{}/tracked_objects'.format(nodenum)
-        #self.tracked_objects_sub = rospy.Subscriber(
-        #        tracked_objects_topic, 
-        #        Trackedobjectlist, 
-        #        self.tracked_objects_callback
-        #        )
-
         # Subscribe to camera images
         self.bridge = CvBridge()
-        #self.latest_image = None
         self.image_lock = threading.Lock()
         self.image_sub = rospy.Subscriber('/camera/image_raw', Image, self.image_callback)
 
@@ -107,7 +98,6 @@ class PuzzleBoxes(object):
         protocol_list = []
         for i in range(len(self.param['regions']['centers'])):
             protocol = {}
-            #print(i, df['Fly'][i], df['LED Policy Param'][i])
             if type(df['Fly'][i]) == str:
                 protocol['fly'] = df['Fly'][i]
                 protocol['classifier'] = {
@@ -123,6 +113,7 @@ class PuzzleBoxes(object):
                 protocol['classifier'] = {'type': 'empty', 'param': '{}'}
                 protocol['led_policy'] = {'type': 'empty', 'param': '{}'}
             protocol_list.append(protocol)
+
         self.param['regions']['protocols'] = protocol_list
 
         # Load trial state and duration parameters
@@ -167,15 +158,6 @@ class PuzzleBoxes(object):
         cv_img = self.bridge.imgmsg_to_cv2(ros_img,desired_encoding='mono8')
         self.image_queue.put(cv_img)
 
-        #cv_img_bgr = cv2.cvtColor(cv_img, cv2.COLOR_GRAY2BGR)
-        #with self.image_lock:
-        #    self.latest_image = cv_img_bgr
-
-    #def tracked_objects_callback(self,data):
-    #    number_of_objects = len(data.tracked_objects)
-    #    if number_of_objects > 0: 
-    #        self.objects_queue.put(data.tracked_objects)
-
     def run(self):
 
         elapsed_time = 0.0 
@@ -218,21 +200,6 @@ class PuzzleBoxes(object):
                 self.process_regions(ros_time_now, elapsed_time, tracked_objects)
                 bgr_image = cv2.cvtColor(image,cv2.COLOR_GRAY2BGR)
                 self.region_visualizer.update(elapsed_time, bgr_image, self.trial_scheduler)
-
-            #self.trial_scheduler.update(elapsed_time)
-
-            #while (self.objects_queue.qsize() > 0):
-            #    # Process tracked objects
-            #    ros_time_now = rospy.Time.now()
-            #    current_time = ros_time_now.to_time()
-            #    elapsed_time = current_time - self.start_time 
-            #    self.trial_scheduler.update(elapsed_time)
-
-            #    tracked_objects = self.objects_queue.get()
-            #    self.process_regions(ros_time_now, elapsed_time, tracked_objects)
-            ## Visualize regions and objecs
-            #with self.image_lock:
-            #    self.region_visualizer.update(elapsed_time, self.latest_image, self.trial_scheduler)
 
             if self.trial_scheduler.done:
                 # Call ROS shutdown
