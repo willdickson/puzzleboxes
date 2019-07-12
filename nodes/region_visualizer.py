@@ -232,6 +232,7 @@ class RegionVisualizer(object):
             cx = tracking_region.param['center']['cx']
             cy = tracking_region.param['center']['cy']
             radius = classifier_param['radius']
+            outer_radius = classifier_param['outer_radius']
             tunnels = classifier_param['tunnels']
             if 'left' in tunnels:
                 x = cx - radius
@@ -249,6 +250,23 @@ class RegionVisualizer(object):
                 y = cy + radius
                 cv2.line(image, (cx-5,y), (cx-12,y), color, self.classifier_thickness)
                 cv2.line(image, (cx+5,y), (cx+12,y), color, self.classifier_thickness)
+                
+            if 'top_left' in tunnels:
+                x = cx - radius
+                y = cy - radius
+                cv2.circle(image, (x,y), 1, color,self.classifier_thickness)
+            if 'top_right' in tunnels:
+                x = cx + radius
+                y = cy - radius
+                cv2.circle(image, (x,y), 1, color,self.classifier_thickness)
+            if 'bottom_left' in tunnels:
+                x = cx - radius
+                y = cy + radius
+                cv2.circle(image, (x,y), 1, color,self.classifier_thickness)
+            if 'bottom_right' in tunnels:
+                x = cx + radius
+                y = cy + radius
+                cv2.circle(image, (x,y), 1, color,self.classifier_thickness)
         elif classifier_type == 'empty':
             pass
 

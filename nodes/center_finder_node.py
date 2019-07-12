@@ -22,10 +22,13 @@ class CenterFinderNode(object):
         self.threshold = rospy.get_param('/center_finder/threshold',15)
         self.min_area = rospy.get_param('/center_finder/min_area', 100)
         self.cmp_margin = rospy.get_param('/center_finder/cmp_margin', 5)
+        self.close_kernel_size = rospy.get_param('/center_finder/close_kernel_size',0)
+        self.erode_kernel_size = rospy.get_param('/center_finder/erode_kernel_size',0)
         self.filter_coeff = rospy.get_param('/center_finder/filter_coeff', 0.05)
         self.center_disp_radius = rospy.get_param('/center_finder/center_disp_radius', 3)
         default_output_file = os.path.join(os.path.abspath(os.curdir),'centers.yaml')
         self.output_file = rospy.get_param('/center_finder/output_file', default_output_file)
+        self.input_file = rospy.get_param('/center_finder/input_file', None)
 
         self.centers_window = 'centers'
         self.threshold_window = 'threshold'
@@ -37,6 +40,11 @@ class CenterFinderNode(object):
         self.centroid_array = None 
         self.filtered_centroid_array = None
 
+        if self.input_file is not None:
+            self.input_image = np.load(self.input_file)
+        else:
+            self.input_image = None
+
         self.bridge = CvBridge()
         self.img_queue = Queue.Queue()
         self.img_sub = rospy.Subscriber('/camera/image_raw', Image, self.img_callback)
@@ -44,7 +52,10 @@ class CenterFinderNode(object):
 
     def img_callback(self,ros_img): 
         cv_img = self.bridge.imgmsg_to_cv2(ros_img,desired_encoding='mono8')
-        cv_img_bgr = cv2.cvtColor(cv_img, cv2.COLOR_GRAY2BGR)
+        if self.input_image is None:
+            cv_img_bgr = cv2.cvtColor(cv_img, cv2.COLOR_GRAY2BGR)
+        else:
+            cv_img_bgr = cv2.cvtColor(self.input_image,cv2.COLOR_GRAY2BGR)
         self.img_queue.put(cv_img_bgr)
 
 
@@ -84,8 +95,12 @@ class CenterFinderNode(object):
         image_gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
         #image_gray = cv2.blur(image_gray,(3,3))
         rval, threshold_image = cv2.threshold(image_gray, self.threshold, np.iinfo(image.dtype).max, cv2.THRESH_BINARY)
-        #threshold_image = cv2.morphologyEx(threshold_image, cv2.MORPH_CLOSE,np.ones((5,5))) 
-        #threshold_image = cv2.dilate(threshold_image, np.ones((5,5)),50) 
+        if self.close_kernel_size > 0:
+            close_kernel = np.ones((self.close_kernel_size, self.close_kernel_size))
+            threshold_image = cv2.morphologyEx(threshold_image, cv2.MORPH_CLOSE, close_kernel) 
+        if self.erode_kernel_size > 0:
+            erode_kernel = np.ones((self.erode_kernel_size, self.erode_kernel_size))
+            threshold_image = cv2.erode(threshold_image, erode_kernel, 1) 
         dummy, contour_list, dummy = cv2.findContours(threshold_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         filtered_contour_list = []
         centroid_list = []

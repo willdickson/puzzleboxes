@@ -23,7 +23,6 @@ class BgFinderNode(object):
         default_output_file = os.path.join(os.path.abspath(os.curdir),'bg_image.npy')
         self.output_file = rospy.get_param('/bg_finder/output_file', default_output_file)
 
-        self.bg_list = []
         self.bg_window = 'background'
         self.bg_last_update_time = 0.0
 
@@ -39,8 +38,9 @@ class BgFinderNode(object):
 
     def run(self):
 
-        self.start_time = rospy.Time.now().to_time()
+        bg_img = None
 
+        self.start_time = rospy.Time.now().to_time()
         while not rospy.is_shutdown():
             done = False
             new_img = None
@@ -49,25 +49,21 @@ class BgFinderNode(object):
                     new_img = self.img_queue.get_nowait()
                 except Queue.Empty:
                     done = True
+
             if new_img is not None:
+                if bg_img is None:
+                    bg_img = new_img
+
                 ros_time_now = rospy.Time.now()
                 current_time = ros_time_now.to_time()
                 elapsed_time = current_time - self.start_time 
-                if not self.bg_list or elapsed_time - self.bg_last_update_time > self.update_dt: 
-                    print(len(self.bg_list))
-                    self.bg_list.append(new_img)
-                    self.bg_last_update_time = elapsed_time
-                    if len(self.bg_list) > self.max_len:
-                        self.bg_list.pop(0)
-                    if len(self.bg_list) > 2:
-                        #bg_img = np.median(np.array(self.bg_list), axis=0)
-                        bg_img = np.max(np.array(self.bg_list), axis=0)
-                        bg_img = bg_img.astype(np.uint8)
-                    else:
-                        bg_img = self.bg_list[0]
+                if elapsed_time - self.bg_last_update_time > self.update_dt:
+                    bg_img = np.maximum(bg_img, new_img)
                     cv2.imshow(self.bg_window,bg_img)
                     cv2.moveWindow(self.bg_window, 200, 250)
                     cv2.waitKey(1)
+                    self.bg_last_update_time = elapsed_time
+                    
 
         rospy.logwarn('saving background image to {}'.format(self.output_file))
         with open(self.output_file,'w') as fid:
