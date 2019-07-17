@@ -200,8 +200,8 @@ class PuzzleBoxes(object):
 
         self.clean_up()
 
-        #if self.param['kill_at_finish']:
-        #    os.system('rosnode kill -a')
+        if self.param['kill_at_finish']:
+            os.system('rosnode kill -a')
 
     def clean_up(self):
         for tracking_region in self.tracking_region_list: 

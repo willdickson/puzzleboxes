@@ -1,6 +1,5 @@
 import math
 from classifier import Classifier
-import rospy
 
 class TunnelsClassifier(Classifier):
 
@@ -24,54 +23,34 @@ class TunnelsClassifier(Classifier):
                 right = False
                 top = False
                 bottom = False
-#                if -1.0*outer_radius < (x-cx) < -1.0*radius:
-                if -1.0*outer_radius < (x-cx) and (x-cx) < -1.0*radius:    
+                if -1.0*outer_radius < (x-cx) < -1.0*radius:
                     left = True
-                    self.state = True
-                    posit=[str(x),str(y)]
-                    rospy.logwarn(posit)
                 if outer_radius > (x-cx) > radius:
                     right = True
-                    self.state = True
-                    posit=[str(x),str(y)]
-                    rospy.logwarn(posit)
                 if -1.0*outer_radius < (y-cy) < -1.0*radius:
                     top = True
-                    self.state = True
-                    posit=[str(x),str(y)]
-                    rospy.logwarn(posit)
                 if outer_radius > (y-cy) > radius:
                     bottom = True
+                    
+                self.state = False
+                if 'left' in tunnels and '_left' not in tunnels and left:
                     self.state = True
-                    posit=[str(x),str(y)]
-                    rospy.logwarn(posit)
-                
-                
-#                if 'left' in tunnels and -1.0*outer_radius < x-cx < -1.0*radius:
-#                    self.state = True
-#                elif 'right' in tunnels and outer_radius > x-cx > radius:
-#                    self.state = True
-#                elif 'top' in tunnels and -1.0*outer_radius < y-cy < -1.0*radius:
-#                    self.state = True
-#                elif 'bottom' in tunnels and outer_radius > y-cy > radius:
-#                    self.state = True
-#                elif 'top_left' in tunnels and -1.0*outer_radius < x-cx < -1.0*radius and -1.0*outer_radius < y-cy < -1.0*radius:
-#                    self.state = True
-#                elif 'top_right' in tunnels and outer_radius > x-cx > radius and -1.0*outer_radius < y-cy < -1.0*radius:
-#                    self.state = True
-#                elif 'bottom_left' in tunnels and -1.0*outer_radius < x-cx < -1.0*radius and outer_radius > y-cy > radius:
-#                    self.state = True
-#                elif 'bottom_right' in tunnels and outer_radius > x-cx > radius and outer_radius > y-cy > radius:
-#                    self.state = True    
-                else:
-                    self.state = False
+                if 'right' in tunnels and '_right' not in tunnels and right:
+                    self.state = True    
+                if 'top' in tunnels and 'top_' not in tunnels and top:
+                    self.state = True
+                if 'bottom' in tunnels and 'bottom_' not in tunnels and bottom:
+                    self.state = True
+                if 'top_left' in tunnels and left and top:
+                    self.state = True
+                if 'top_right' in tunnels and right and top:
+                    self.state = True        
+                if 'bottom_left' in tunnels and left and bottom:
+                    self.state = True
+                if 'bottom_right' in tunnels and right and bottom:
+                    self.state = True
+                   
             else:
                 self.state = False
         else:
             self.state = False
-
-
-
-
-
-    
