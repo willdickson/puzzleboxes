@@ -1,4 +1,5 @@
 from __future__ import print_function
+import os
 import cv2
 import numpy as np
 import yaml
@@ -46,8 +47,8 @@ class RegionVisualizer(object):
         self.font = cv2.FONT_HERSHEY_SIMPLEX
         self.fontsize = 0.3
         
-        self.PILfont = ImageFont.truetype('/home/flyranch-corfas/catkin_ws/src/puzzleboxes/fonts/visitor2.ttf',12)
-        self.PILfont_large = ImageFont.truetype('/home/flyranch-corfas/catkin_ws/src/puzzleboxes/fonts/visitor2.ttf',20)
+        self.PILfont = ImageFont.truetype(os.path.join(os.environ['HOME'],'catkin_ws/src/puzzleboxes/fonts/visitor2.ttf'),12)
+        self.PILfont_large = ImageFont.truetype(os.path.join(os.environ['HOME'], 'catkin_ws/src/puzzleboxes/fonts/visitor2.ttf'),20)
         
     def update(self, elapsed_time, image, trial_scheduler):
         if image is None:
