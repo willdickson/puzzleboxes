@@ -5,7 +5,7 @@ import json
 import rosbag
 import h5py
 import numpy as np
-import progress.bar
+import progressbar
 import cv_bridge 
 
 import cv2
@@ -54,7 +54,10 @@ def convert_to_h5(bag_filename):
         
     info = bag.get_type_and_topic_info()
     message_count = info.topics['/puzzleboxes_data'].message_count
-    progress_bar = progress.bar.Bar('Processing', max=message_count)
+    progress_bar = progressbar.ProgressBar(
+            widgets=[progressbar.Percentage(),progressbar.Bar()],
+            maxval=message_count
+            ).start()
     
     # Read messages and populate datasets
     for msg_count, msg_item in enumerate(bag.read_messages(topics=['/puzzleboxes_data'])):
@@ -68,7 +71,7 @@ def convert_to_h5(bag_filename):
                 index_to_data[i]['y'].append(region_data.y)
                 index_to_data[i]['classifier'].append(region_data.classifier)
                 index_to_data[i]['led'].append(region_data.led)
-        progress_bar.next()
+        progress_bar.update(msg_count)
     progress_bar.finish()
     
     # Save data to hdf5 file
