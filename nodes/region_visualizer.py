@@ -12,8 +12,9 @@ from PIL import ImageDraw
 
 class RegionVisualizer(object):
 
-    def __init__(self,tracking_region_list):
+    def __init__(self,tracking_region_list, param):
         self.tracking_region_list = tracking_region_list
+        self.param = param
         self.is_first_image = True
         self.window_name = 'tracking_regions'
         self.window_num_pad = 1,11
@@ -73,10 +74,16 @@ class RegionVisualizer(object):
             self.draw_bounding_box(image,tracking_region, color)
             self.draw_classifier(image,tracking_region)
             self.draw_object(image, tracking_region)
+
+        
         
         image = self.draw_display_text(image, elapsed_time, trial_scheduler, self.display_text)
-        
 
+        if self.param['use_compressed_images']:
+            n,m,c = image.shape
+            ns, ms = int(n*self.param['display_scale']), int(m*self.param['display_scale'])
+            image = cv2.resize(image,(ms,ns),0,0,cv2.INTER_AREA)
+        
         cv2.imshow(self.window_name,image)
         cv2.waitKey(1)
     

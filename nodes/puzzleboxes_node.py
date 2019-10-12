@@ -13,6 +13,7 @@ import time
 import datetime
 import pandas as pd
 import numpy as np
+import jpeg4py as jpeg
 
 from blob_finder import BlobFinder
 
@@ -23,6 +24,7 @@ from region_visualizer import RegionVisualizer
 from trial_scheduler import TrialScheduler
 
 from sensor_msgs.msg import Image
+from sensor_msgs.msg import CompressedImage
 from cv_bridge import CvBridge, CvBridgeError
 
 from puzzleboxes.msg import PuzzleboxesData
@@ -48,13 +50,16 @@ class PuzzleBoxes(object):
         self.check_param()
 
         self.create_tracking_regions()
-        self.region_visualizer = RegionVisualizer(self.tracking_region_list)
+        self.region_visualizer = RegionVisualizer(self.tracking_region_list,self.param)
         self.trial_scheduler = TrialScheduler(self.param['trial_schedule'])
 
         # Subscribe to camera images
         self.bridge = CvBridge()
         self.image_lock = threading.Lock()
-        self.image_sub = rospy.Subscriber('/camera/image_raw', Image, self.image_callback)
+        if self.param['use_compressed_images']:
+            self.image_sub = rospy.Subscriber('/camera/image_raw/compressed', CompressedImage, self.compressed_image_callback)
+        else:
+            self.image_sub = rospy.Subscriber('/camera/image_raw', Image, self.ros_image_callback)
 
         # Load background image
         self.bg_image = np.load(self.param['regions']['bg_image_file'])
@@ -155,9 +160,15 @@ class PuzzleBoxes(object):
             }
             self.tracking_region_list.append(TrackingRegion(region_param,self.devices))
 
-    def image_callback(self,ros_img): 
+    def ros_image_callback(self,ros_img): 
         cv_img = self.bridge.imgmsg_to_cv2(ros_img,desired_encoding='mono8')
         self.image_queue.put(cv_img)
+
+    def compressed_image_callback(self,msg): 
+        img_cmp = np.fromstring(msg.data, np.uint8)
+        img_bgr = jpeg.JPEG(img_cmp).decode()
+        img_gry = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+        self.image_queue.put(img_gry)
 
     def run(self):
 
@@ -171,6 +182,11 @@ class PuzzleBoxes(object):
                 maxArea=self.param['tracking']['max_area'],
                 )
 
+        # Devel
+        # -----------------------
+        t_last = time.time()
+        # -----------------------
+
         while not rospy.is_shutdown():
 
             while (self.image_queue.qsize() > 0):
@@ -178,25 +194,34 @@ class PuzzleBoxes(object):
                 ros_time_now = rospy.Time.now()
                 current_time = ros_time_now.to_time()
                 elapsed_time = current_time - self.start_time 
-
                 image = self.image_queue.get()
-                diff_image = cv2.absdiff(image,self.bg_image)
-                blob_list, blob_image = blob_finder.find(diff_image)
-                tracked_objects = []
-                for blob in blob_list:
-                    obj = TrackedObject()  # Replace this with simple class
-                    obj.position.x = blob['centroidX']
-                    obj.position.y = blob['centroidY']
-                    obj.size = blob['area']
-                    tracked_objects.append(obj)
-                self.trial_scheduler.update(elapsed_time)
-                self.process_regions(ros_time_now, elapsed_time, tracked_objects)
-                bgr_image = cv2.cvtColor(image,cv2.COLOR_GRAY2BGR)
-                self.region_visualizer.update(elapsed_time, bgr_image, self.trial_scheduler)
 
-            if self.trial_scheduler.done:
-                # Call ROS shutdown
-                break
+                # Devel
+                # -----------------------
+                t_now = time.time()
+                dt = t_now - t_last
+                t_last = t_now
+                rospy.logwarn('new_image, {}, {}'.format(1.0/dt,self.image_queue.qsize()))
+                # -----------------------
+
+                diff_image = cv2.absdiff(image,self.bg_image)
+                blob_finder.find(diff_image)
+            #    blob_list, blob_image = blob_finder.find(diff_image)
+            #    tracked_objects = []
+            #    for blob in blob_list:
+            #        obj = TrackedObject()  # Replace this with simple class
+            #        obj.position.x = blob['centroidX']
+            #        obj.position.y = blob['centroidY']
+            #        obj.size = blob['area']
+            #        tracked_objects.append(obj)
+            #    self.trial_scheduler.update(elapsed_time)
+            #    self.process_regions(ros_time_now, elapsed_time, tracked_objects)
+            #    bgr_image = cv2.cvtColor(image,cv2.COLOR_GRAY2BGR)
+            #    self.region_visualizer.update(elapsed_time, bgr_image, self.trial_scheduler)
+
+            #if self.trial_scheduler.done:
+            #    # Call ROS shutdown
+            #    break
 
         self.clean_up()
 

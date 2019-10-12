@@ -7,8 +7,11 @@ import threading
 import yaml
 import cv2
 import numpy as np
+import jpeg4py as jpeg
 
 from sensor_msgs.msg import Image
+from sensor_msgs.msg import CompressedImage
+
 from cv_bridge import CvBridge, CvBridgeError
 
 
@@ -16,9 +19,10 @@ class CenterFinderNode(object):
 
     def __init__(self):
 
-
         rospy.init_node('center_finder',log_level=rospy.INFO)
 
+        self.use_compressed_images = rospy.get_param('/center_finder/use_compressed_images',False)
+        self.display_scale = rospy.get_param('/center_finder/display_scale',1.0)
         self.threshold = rospy.get_param('/center_finder/threshold',15)
         self.min_area = rospy.get_param('/center_finder/min_area', 100)
         self.cmp_margin = rospy.get_param('/center_finder/cmp_margin', 5)
@@ -26,6 +30,7 @@ class CenterFinderNode(object):
         self.erode_kernel_size = rospy.get_param('/center_finder/erode_kernel_size',0)
         self.filter_coeff = rospy.get_param('/center_finder/filter_coeff', 0.05)
         self.center_disp_radius = rospy.get_param('/center_finder/center_disp_radius', 3)
+        self.center_disp_thickness = rospy.get_param('/center_finder/center_disp_thickness', 2)
         default_output_file = os.path.join(os.path.abspath(os.curdir),'centers.yaml')
         self.output_file = rospy.get_param('/center_finder/output_file', default_output_file)
         self.input_file = rospy.get_param('/center_finder/input_file', None)
@@ -47,7 +52,11 @@ class CenterFinderNode(object):
 
         self.bridge = CvBridge()
         self.img_queue = Queue.Queue()
-        self.img_sub = rospy.Subscriber('/camera/image_raw', Image, self.img_callback)
+        rospy.logwarn(self.use_compressed_images)
+        if self.use_compressed_images:
+            self.img_sub = rospy.Subscriber('/camera/image_raw/compressed', CompressedImage, self.cmp_img_callback)
+        else:
+            self.img_sub = rospy.Subscriber('/camera/image_raw', Image, self.img_callback)
 
 
     def img_callback(self,ros_img): 
@@ -57,6 +66,14 @@ class CenterFinderNode(object):
         else:
             cv_img_bgr = cv2.cvtColor(self.input_image,cv2.COLOR_GRAY2BGR)
         self.img_queue.put(cv_img_bgr)
+
+    def cmp_img_callback(self,msg): 
+        if self.input_image is None:
+            img_cmp = np.fromstring(msg.data, np.uint8)
+            img_bgr = jpeg.JPEG(img_cmp).decode()
+        else:
+            img_bgr = cv2.cvtColor(self.input_image,cv2.COLOR_GRAY2BGR)
+        self.img_queue.put(img_bgr)
 
 
     def run(self):
@@ -78,9 +95,8 @@ class CenterFinderNode(object):
                     cv2.namedWindow(self.centers_window,cv2.WINDOW_NORMAL)
                     cv2.moveWindow(self.centers_window, 220, 270)
                     cv2.resizeWindow(self.centers_window, 800,600)
-
                     self.is_first_img = False 
-              
+
                 cv2.imshow(self.centers_window,centers_img)
                 cv2.imshow(self.threshold_window,threshold_img)
                 cv2.waitKey(1)
@@ -124,17 +140,31 @@ class CenterFinderNode(object):
         self.centroid_array = np.array(centroid_list)
         self.update_filtered_centroids()
 
-        for cx,cy in self.centroid_array:
-            cv2.circle(contours_image,(cx,cy),self.center_disp_radius,self.center_color)
+        if self.use_compressed_images: 
+            scale = self.display_scale
+            n,m,c = contours_image.shape
+            ns, ms = int(n*scale), int(m*scale)
+            contours_image = cv2.resize(contours_image,(ms,ns),0, 0, cv2.INTER_AREA)
+            threshold_image = cv2.resize(threshold_image,(ms,ns),0, 0, cv2.INTER_AREA)
+        else:
+            scale = 1.0
 
-        if self.filtered_centroid_array is not None:
-            for cx,cy in self.filtered_centroid_array:
-                cv2.circle(
-                        contours_image,
-                        (int(np.round(cx)),int(np.round(cy))),
-                        self.center_disp_radius,
-                        self.filtered_color
-                        )
+        for cx,cy in self.centroid_array:
+            cv2.circle(contours_image,(int(scale*cx),int(scale*cy)),self.center_disp_radius,self.center_color,self.center_disp_thickness)
+
+        # Need to scale contours
+        # -------------------------------------------------------------------------------------
+        #if self.filtered_centroid_array is not None:
+        #    for cx,cy in self.filtered_centroid_array:
+        #        cv2.circle(
+        #                contours_image,
+        #                (int(np.round(scale*cx)),int(np.round(scale*cy))),
+        #                self.center_disp_radius,
+        #                self.filtered_color
+        #                )
+        # -------------------------------------------------------------------------------------
+
+        rospy.logwarn(contours_image.shape)
         return contours_image, threshold_image, image_gray 
 
 
