@@ -14,74 +14,77 @@ class BlobFinder(object):
     def find(self,image):
         
         rval, threshImage = cv2.threshold(image, self.threshold,255,cv2.THRESH_BINARY)
+        open_kernel = numpy.ones((3,3), numpy.uint8)
+        threshImage = cv2.morphologyEx(threshImage, cv2.MORPH_OPEN, open_kernel)
         _, contourList, _ = cv2.findContours(threshImage, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        rospy.logwarn('len(contourList): {}'.format(len(contourList)))
+        #cv2.imshow('threshold', threshImage)
+        #rospy.logwarn('len(contourList): {}'.format(len(contourList)))
 
         # Find blob data
         blobList = []
         blobContours = []
 
-        #for contour in contourList:
+        for contour in contourList:
 
-        #    blobOk = True
+            blobOk = True
 
-        #    # Get area and apply area filter  
-        #    area = cv2.contourArea(contour)
-        #    if self.filterByArea:
-        #        if area <= 0:
-        #            blobOk = False
-        #        if self.minArea is not None:
-        #            if area < self.minArea:
-        #                blobOk = False
-        #        if self.maxArea is not None:
-        #            if area > self.maxArea:
-        #                blobOk = False
+            # Get area and apply area filter  
+            area = cv2.contourArea(contour)
+            if self.filterByArea:
+                if area <= 0:
+                    blobOk = False
+                if self.minArea is not None:
+                    if area < self.minArea:
+                        blobOk = False
+                if self.maxArea is not None:
+                    if area > self.maxArea:
+                        blobOk = False
 
-        #    # Get centroid
-        #    moments = cv2.moments(contour)
-        #    if moments['m00'] > 0 and blobOk:
-        #        centroidX = int(numpy.round(moments['m10']/moments['m00']))
-        #        centroidY = int(numpy.round(moments['m01']/moments['m00']))
-        #    else:
-        #        blobOk = False
-        #        centroidX = 0
-        #        centroidY = 0
+            # Get centroid
+            moments = cv2.moments(contour)
+            if moments['m00'] > 0 and blobOk:
+                centroidX = int(numpy.round(moments['m10']/moments['m00']))
+                centroidY = int(numpy.round(moments['m01']/moments['m00']))
+            else:
+                blobOk = False
+                centroidX = 0
+                centroidY = 0
 
-        #    # Get bounding rectangle
-        #    if blobOk:
-        #        bound_rect = cv2.boundingRect(contour)
-        #        minX = bound_rect[0]
-        #        minY = bound_rect[1]
-        #        maxX = bound_rect[0] + bound_rect[2] 
-        #        maxY = bound_rect[1] + bound_rect[3] 
-        #    else:
-        #        minX = 0.0 
-        #        minY = 0.0
-        #        maxX = 0.0
-        #        maxY = 0.0
+            # Get bounding rectangle
+            if blobOk:
+                bound_rect = cv2.boundingRect(contour)
+                minX = bound_rect[0]
+                minY = bound_rect[1]
+                maxX = bound_rect[0] + bound_rect[2] 
+                maxY = bound_rect[1] + bound_rect[3] 
+            else:
+                minX = 0.0 
+                minY = 0.0
+                maxX = 0.0
+                maxY = 0.0
 
-        #    # Create blob dictionary
-        #    blob = {
-        #            'centroidX' : centroidX,
-        #            'centroidY' : centroidY,
-        #            'minX'      : minX,
-        #            'maxX'      : maxX,
-        #            'minY'      : minY,
-        #            'maxY'      : maxY,
-        #            'area'      : area,
-        #            } 
+            # Create blob dictionary
+            blob = {
+                    'centroidX' : centroidX,
+                    'centroidY' : centroidY,
+                    'minX'      : minX,
+                    'maxX'      : maxX,
+                    'minY'      : minY,
+                    'maxY'      : maxY,
+                    'area'      : area,
+                    } 
 
-        #    # If blob is OK add to list of blobs
-        #    if blobOk: 
-        #        blobList.append(blob)
-        #        blobContours.append(contour)
+            # If blob is OK add to list of blobs
+            if blobOk: 
+                blobList.append(blob)
+                blobContours.append(contour)
 
-        ## Draw blob on image
-        #blobImage = cv2.cvtColor(image,cv2.COLOR_GRAY2BGR)
-        #cv2.drawContours(blobImage,blobContours,-1,(0,0,255),3)
+        # Draw blob on image
+        blobImage = cv2.cvtColor(image,cv2.COLOR_GRAY2BGR)
+        cv2.drawContours(blobImage,blobContours,-1,(0,0,255),3)
 
-        #return blobList, blobImage
+        return blobList, blobImage
 
 
 

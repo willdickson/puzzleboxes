@@ -41,6 +41,7 @@ class PuzzleBoxes(object):
         self.devices['led_controller'] = LedController()
         self.image_queue = Queue.Queue()
         self.objects_queue = Queue.Queue()
+        self.queue_overflow = False
 
         rospy.init_node('puzzleboxes')
 
@@ -68,13 +69,16 @@ class PuzzleBoxes(object):
         self.data_pub = rospy.Publisher('/puzzleboxes_data', PuzzleboxesData, queue_size=10) 
         self.param_pub = rospy.Publisher('/puzzleboxes_param', std_msgs.msg.String,queue_size=10)
         self.bg_image_pub = rospy.Publisher('/puzzleboxes_bg_image', Image, queue_size=10)
+        self.param_pub_count = 0
         self.parm_pub_timer = rospy.Timer(rospy.Duration(secs=self.param['param_pub_period']), self.on_param_pub_timer)
 
 
     def on_param_pub_timer(self,event):
-        self.param_pub.publish(json.dumps(self.param))
-        bg_image_ros = self.bridge.cv2_to_imgmsg(self.bg_image)
-        self.bg_image_pub.publish(bg_image_ros)
+        if self.param_pub_count < self.param['param_pub_number']:
+            self.param_pub.publish(json.dumps(self.param))
+            bg_image_ros = self.bridge.cv2_to_imgmsg(self.bg_image)
+            self.bg_image_pub.publish(bg_image_ros)
+            self.param_pub_count += 1
 
     def get_param(self):
         self.param = rospy.get_param(self.param_path, None)
@@ -182,14 +186,17 @@ class PuzzleBoxes(object):
                 maxArea=self.param['tracking']['max_area'],
                 )
 
-        # Devel
-        # -----------------------
-        t_last = time.time()
-        # -----------------------
+
+        count = 0
 
         while not rospy.is_shutdown():
 
             while (self.image_queue.qsize() > 0):
+
+                while (self.image_queue.qsize() > self.param['max_queue_size']):
+                    self.image_queue.get()
+                    self.queue_overflow = True
+                    rospy.logwarn('image_queue overflow > {}'.format(self.param['max_queue_size']))
 
                 ros_time_now = rospy.Time.now()
                 current_time = ros_time_now.to_time()
@@ -197,31 +204,45 @@ class PuzzleBoxes(object):
                 image = self.image_queue.get()
 
                 # Devel
-                # -----------------------
-                t_now = time.time()
-                dt = t_now - t_last
-                t_last = t_now
-                rospy.logwarn('new_image, {}, {}'.format(1.0/dt,self.image_queue.qsize()))
-                # -----------------------
+                # -----------------------------------------------------------------------------
+                if self.param['show_processing_dt']:
+                    if count == 0:
+                        last_time = current_time
+                    else:
+                        dt = current_time - last_time 
+                        last_time = current_time
+                        rospy.logwarn('new_image, {}, {}'.format(1.0/dt,self.image_queue.qsize()))
+                # -----------------------------------------------------------------------------
 
                 diff_image = cv2.absdiff(image,self.bg_image)
-                blob_finder.find(diff_image)
-            #    blob_list, blob_image = blob_finder.find(diff_image)
-            #    tracked_objects = []
-            #    for blob in blob_list:
-            #        obj = TrackedObject()  # Replace this with simple class
-            #        obj.position.x = blob['centroidX']
-            #        obj.position.y = blob['centroidY']
-            #        obj.size = blob['area']
-            #        tracked_objects.append(obj)
-            #    self.trial_scheduler.update(elapsed_time)
-            #    self.process_regions(ros_time_now, elapsed_time, tracked_objects)
-            #    bgr_image = cv2.cvtColor(image,cv2.COLOR_GRAY2BGR)
-            #    self.region_visualizer.update(elapsed_time, bgr_image, self.trial_scheduler)
+                #diff_image = cv2.medianBlur(diff_image, 5)
+                #cv2.imshow('diff', diff_image)
+                blob_list, blob_image = blob_finder.find(diff_image)
+                #cv2.imshow('blob', blob_image)
 
-            #if self.trial_scheduler.done:
-            #    # Call ROS shutdown
-            #    break
+                # Devel
+                # -----------------------------------------------------------------------------
+                #rospy.logwarn('len(blob_list) = {}'.format(len(blob_list)))
+                # -----------------------------------------------------------------------------
+
+                tracked_objects = []
+                for blob in blob_list:
+                    obj = TrackedObject()  # Replace this with simple class
+                    obj.position.x = blob['centroidX']
+                    obj.position.y = blob['centroidY']
+                    obj.size = blob['area']
+                    tracked_objects.append(obj)
+                self.trial_scheduler.update(elapsed_time)
+                self.process_regions(ros_time_now, elapsed_time, tracked_objects)
+                bgr_image = cv2.cvtColor(image,cv2.COLOR_GRAY2BGR)
+
+                if count%1==0:
+                    self.region_visualizer.update(elapsed_time, bgr_image, self.trial_scheduler)
+                count += 1
+
+            if self.trial_scheduler.done:
+                # Call ROS shutdown
+                break
 
         self.clean_up()
 
@@ -239,6 +260,8 @@ class PuzzleBoxes(object):
         msg.elapsed_time = elapsed_time
         msg.region_data_list = []
         msg.led_enabled = led_enabled
+        msg.queue_overflow = self.queue_overflow
+        msg.queue_size = self.image_queue.qsize() 
         for tracking_region in self.tracking_region_list: 
             region_data = tracking_region.update(elapsed_time, tracked_objects, led_enabled)
             msg.region_data_list.append(region_data)
@@ -252,9 +275,10 @@ class TrackedObject(object):
 
     def __init__(self):
         self.position = ObjectPosition()
+        self.size = 0.0
 
     def __str__(self):
-        return 'TrackedObject: {}'.format(self.position)
+        return 'TrackedObject: position {}, size {}'.format(self.position, self.size)
 
 class ObjectPosition(object):
 

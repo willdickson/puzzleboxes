@@ -38,6 +38,7 @@ class TrackingRegion(RectRegion):
             self.obj = None
         self.protocol.update(t, self.obj, led_enabled)
 
+
         msg = RegionData()
         if self.obj is not None:
             msg.object_found = True
