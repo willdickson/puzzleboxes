@@ -7,11 +7,11 @@ import rospy
 import std_msgs.msg
 import cv2
 import threading
+import pandas as pd
 import yaml
 import json
 import time
 import datetime
-import pandas as pd
 import numpy as np
 import jpeg4py as jpeg
 
@@ -49,6 +49,10 @@ class PuzzleBoxes(object):
         self.param_path = '/puzzleboxes'
         self.get_param()
         self.check_param()
+
+        # Set Led controller current limit
+        current_limit = self.param['default_param']['led_scheduler']['global']['current_limit']
+        self.devices['led_controller'].set_current_limit(current_limit)
 
         self.create_tracking_regions()
         self.region_visualizer = RegionVisualizer(self.tracking_region_list,self.param)
