@@ -87,7 +87,14 @@ class BgFinderNode(object):
 
         rospy.logwarn('saving background image to {}'.format(self.output_file))
         with open(self.output_file,'w') as fid:
+
+            # save .npy
             np.save(self.output_file,bg_img)
+
+            # save .jpg
+            basename, extname = os.path.splitext(self.output_file)
+            jpg_name = '{}.jpg'.format(basename)
+            cv2.imwrite(jpg_name, bg_img)
         
 
 if __name__ == '__main__':
