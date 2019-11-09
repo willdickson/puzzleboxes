@@ -4,12 +4,16 @@ import cv2
 import numpy as np
 import yaml
 import rospy
+import Queue
 
 class RegionVisualizer(object):
 
-    def __init__(self,tracking_region_list, param):
+    def __init__(self,tracking_region_list,param,data_queue):
+
         self.tracking_region_list = tracking_region_list
         self.param = param
+        self.data_queue = data_queue
+        self.done = False
         self.is_first_image = True
         self.window_name = 'tracking_regions'
         self.window_num_pad = 1,11
@@ -46,8 +50,28 @@ class RegionVisualizer(object):
         self.fontthickness = 2
         self.fontthickness_thick = 3
         self.text_offset = 5
+
+
+    def run(self):
+        while not self.done:
+            data = None
+            while True:
+                try:
+                    data = self.data_queue.get_nowait()
+                except Queue.Empty:
+                    break
+            if data is None:
+                continue
+            self.update(data)
+
         
-    def update(self, elapsed_time, image, trial_scheduler):
+    #def update(self, elapsed_time, image, trial_scheduler):
+    def update(self, data): 
+
+        elapsed_time = data['elapsed_time'] 
+        image = data['bgr_image']
+        trial_scheduler = data['trial_scheduler']
+
         if image is None:
             return
 
@@ -55,12 +79,10 @@ class RegionVisualizer(object):
             # Setup opencv plotting windows
             cv2.namedWindow(self.window_name,cv2.WINDOW_AUTOSIZE)
             cv2.moveWindow(self.window_name, 100, 100)
-            #cv2.resizeWindow(self.window_name, 800,600)
-            self.is_first_image = False 
-            if self.find_centers:
-                cv2.namedWindow('centers_image',cv2.WINDOW_NORMAL)
-                #cv2.moveWindow('centers_image', 120, 120)
-                #cv2.resizeWindow('centers_image', 800,600)
+            #cv2.resizeWindow(self.window_name, 800,600) self.is_first_image = False if self.find_centers:
+            #cv2.namedWindow('centers_image',cv2.WINDOW_NORMAL)
+            #cv2.moveWindow('centers_image', 120, 120)
+            #cv2.resizeWindow('centers_image', 800,600)
         
         self.display_text = {}
                 
@@ -76,7 +98,9 @@ class RegionVisualizer(object):
         if self.param['use_compressed_images']:
             n,m,c = image.shape
             ns, ms = int(n*self.param['display_scale']), int(m*self.param['display_scale'])
-            image = cv2.resize(image,(ms,ns),0,0,cv2.INTER_AREA)
+            #image = cv2.resize(image,(ms,ns),0,0,cv2.INTER_AREA)
+            image = cv2.resize(image,(ms,ns),0,0,cv2.INTER_NEAREST)
+            #image = image[:ns,:ms]
         
         cv2.imshow(self.window_name,image)
         cv2.waitKey(1)
@@ -107,7 +131,7 @@ class RegionVisualizer(object):
             'classifier'    :   {},
             'fly'           :   {},
             'region'        :   {},
-            }
+           }
             
         # annotate led type
         if led_scheduler_type == 'instant' or led_scheduler_type == 'pulse':
@@ -276,53 +300,3 @@ class RegionVisualizer(object):
 
 
 
-
-# SAVE THIS !!!!! 
-# ---------------------------------------------------------------------------------------------------------------
-#    def update(self,image):
-#        """
-#        Extraced from update above ...
-#    
-#        """
-#            if self.find_centers:
-#                # Temporary: move to another node which is run during setup
-#                centers_image = self.find_centers_from_image(image)
-#                cv2.imshow('centers_image', centers_image)
-#
-#    def find_centers_from_image(self, image):
-#        """
-#        Temporary: move to some setup node etc.
-#        """
-#        threshold = 30
-#        min_area = 100
-#        image_gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
-#        rval, threshold_image = cv2.threshold(image_gray, threshold, np.iinfo(image.dtype).max, cv2.THRESH_BINARY)
-#        dummy, contour_list, dummy = cv2.findContours(threshold_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-#        centroid_list = []
-#        filtered_contour_list = []
-#        for contour in contour_list:
-#            moments = cv2.moments(contour) 
-#            if moments['m00'] > 0: 
-#                centroidX = moments['m10']/moments['m00'] 
-#                centroidY = moments['m01']/moments['m00']
-#            else:
-#                continue
-#            area = cv2.contourArea(contour)
-#            if area > min_area:
-#                filtered_contour_list.append(contour)
-#                centroid_list.append([int(centroidX),int(centroidY)])
-#                
-#        contours_image = cv2.cvtColor(image_gray,cv2.COLOR_GRAY2BGR)
-#        cv2.drawContours(contours_image,filtered_contour_list,-1,(255,255,255),2)
-#
-#        for cx,cy in centroid_list:
-#            cv2.circle(contours_image,(cx,cy),3,(255,255,255))
-#
-#        self.centers_count += 1
-#        if self.centers_count == 50:
-#            print('writing centers')
-#            centroid_list.sort()   # This doesn't really work
-#            with open('centers.yaml','w') as f:
-#                yaml.dump(centroid_list, f)
-#
-#        return contours_image 

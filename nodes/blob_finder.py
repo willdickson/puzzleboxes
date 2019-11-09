@@ -14,11 +14,11 @@ class BlobFinder(object):
     def find(self,image):
         
         rval, threshImage = cv2.threshold(image, self.threshold,255,cv2.THRESH_BINARY)
-        open_kernel = numpy.ones((3,3), numpy.uint8)
-        threshImage = cv2.morphologyEx(threshImage, cv2.MORPH_OPEN, open_kernel)
+        #open_kernel = numpy.ones((3,3), numpy.uint8)
+        #threshImage = cv2.morphologyEx(threshImage, cv2.MORPH_OPEN, open_kernel)
         _, contourList, _ = cv2.findContours(threshImage, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        #cv2.imshow('threshold', threshImage)
+        cv2.imshow('threshold', threshImage)
         #rospy.logwarn('len(contourList): {}'.format(len(contourList)))
 
         # Find blob data
@@ -85,6 +85,7 @@ class BlobFinder(object):
         cv2.drawContours(blobImage,blobContours,-1,(0,0,255),3)
 
         return blobList, blobImage
+        #return blobList
 
 
 
