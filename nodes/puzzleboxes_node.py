@@ -55,24 +55,28 @@ class PuzzleBoxes(object):
         self.devices['led_controller'].set_current_limit(current_limit)
 
         self.create_tracking_regions()
-        # Old region visualizer
-        # -----------------------------------------------------------------------------------
-        #self.region_visualizer = RegionVisualizer(self.tracking_region_list,self.param)
-        # -----------------------------------------------------------------------------------
         self.trial_scheduler = TrialScheduler(self.param['trial_schedule'])
 
-        # New region visualizer
-        # -----------------------------------------------------------------------------------
-        self.region_visualizer_queue = Queue.Queue()
-        self.region_visualizer = RegionVisualizer(
-                self.tracking_region_list,
-                self.param,
-                self.region_visualizer_queue
-                )
-        self.visualizer_thread = threading.Thread(target=self.region_visualizer.run)
-        self.visualizer_thread.daemon = True
-        self.visualizer_thread.start()
-        # -----------------------------------------------------------------------------------
+        self.visualizer_on = True 
+
+        if self.visualizer_on:
+            # Old region visualizer
+            # -----------------------------------------------------------------------------------
+            #self.region_visualizer = RegionVisualizer(self.tracking_region_list,self.param)
+            # -----------------------------------------------------------------------------------
+
+            # New region visualizer
+            # -----------------------------------------------------------------------------------
+            self.region_visualizer_queue = Queue.Queue()
+            self.region_visualizer = RegionVisualizer(
+                    self.tracking_region_list,
+                    self.param,
+                    self.region_visualizer_queue
+                    )
+            self.visualizer_thread = threading.Thread(target=self.region_visualizer.run)
+            self.visualizer_thread.daemon = True
+            self.visualizer_thread.start()
+            # -----------------------------------------------------------------------------------
 
         # Subscribe to camera images
         self.bridge = CvBridge()
@@ -185,14 +189,18 @@ class PuzzleBoxes(object):
             self.tracking_region_list.append(TrackingRegion(region_param,self.devices))
 
     def ros_image_callback(self,ros_img): 
-        cv_img = self.bridge.imgmsg_to_cv2(ros_img,desired_encoding='mono8')
-        self.image_queue.put(cv_img)
+        self.image_queue.put(ros_img)
+
+        #cv_img = self.bridge.imgmsg_to_cv2(ros_img,desired_encoding='mono8')
+        #self.image_queue.put(cv_img)
 
     def compressed_image_callback(self,msg): 
-        img_cmp = np.fromstring(msg.data, np.uint8)
-        img_bgr = jpeg.JPEG(img_cmp).decode()
-        img_gry = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
-        self.image_queue.put(img_gry)
+        self.image_queue.put(msg)
+
+        #img_cmp = np.fromstring(msg.data, np.uint8)
+        #img_bgr = jpeg.JPEG(img_cmp).decode()
+        #img_gry = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+        #self.image_queue.put(img_gry)
 
     def run(self):
 
@@ -206,29 +214,31 @@ class PuzzleBoxes(object):
                 maxArea=self.param['tracking']['max_area'],
                 )
 
-        count = 0
+        frame_proc_count = 0
+        queue_get_count = 0
 
         while not rospy.is_shutdown():
 
-            image = None
+            image_msg = None
+
             while True:
                 try:
-                    image = self.image_queue.get_nowait()
+                    image_msg = self.image_queue.get_nowait()
+                    queue_get_count += 1
                 except Queue.Empty:
-                    rospy.logwarn('empty break {}'.format(image is None))
                     break
 
-            if image is None:
+            if image_msg is None:
                 continue
 
-            # Testing
-            # ------------------------------------------------------------------------------
-            n,m = image.shape
-            ns, ms = int(n*self.param['display_scale']), int(m*self.param['display_scale'])
-            tmp_image = cv2.resize(image,(ms,ns),0,0,cv2.INTER_NEAREST)
-            cv2.imshow('test_image', tmp_image)
-            cv2.waitKey(1)
-            # ------------------------------------------------------------------------------
+            dropped_frames = queue_get_count - frame_proc_count - 1
+
+            if self.param['use_compressed_images']:
+                image_cmp = np.fromstring(image_msg.data, np.uint8)
+                image_bgr = jpeg.JPEG(image_cmp).decode()
+                image = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2GRAY)
+            else:
+                image = self.bridge.imgmsg_to_cv2(image_msg,desired_encoding='mono8')
 
             ros_time_now = rospy.Time.now()
             current_time = ros_time_now.to_time()
@@ -237,55 +247,59 @@ class PuzzleBoxes(object):
             # Devel
             # -----------------------------------------------------------------------------
             if self.param['show_processing_dt']:
-                if count == 0:
+                if frame_proc_count == 0:
                     last_time = current_time
                 else:
                     dt = current_time - last_time 
                     last_time = current_time
-                    rospy.logwarn('new_image, {}'.format(1.0/dt))
+                    msg_tuple = (1.0/dt, float(frame_proc_count)/float(queue_get_count), frame_proc_count, queue_get_count, dropped_frames)
+                    rospy.logwarn('new_image, {:1.2f}, {:1.3f},  {}, {}, {}'.format(*msg_tuple))
             # -----------------------------------------------------------------------------
 
-            #diff_image = cv2.absdiff(image,self.bg_image)
-            #diff_image = cv2.medianBlur(diff_image, 5)
+            diff_image = cv2.absdiff(image,self.bg_image)
+            blob_list, blob_image = blob_finder.find(diff_image)
+
+            #cv2.imshow('image', image)
+            #cv2.imshow('bg', self.bg_image)
             #cv2.imshow('diff', diff_image)
-            #blob_list, blob_image = blob_finder.find(diff_image)
-            #blob_list = blob_finder.find(diff_image)
             ##cv2.imshow('blob', blob_image)
+            #cv2.waitKey(1)
 
             ## Devel
             ## -----------------------------------------------------------------------------
             #rospy.logwarn('len(blob_list) = {}'.format(len(blob_list)))
             ## -----------------------------------------------------------------------------
 
-            #tracked_objects = []
-            #for blob in blob_list:
-            #    obj = TrackedObject()  # Replace this with simple class
-            #    obj.position.x = blob['centroidX']
-            #    obj.position.y = blob['centroidY']
-            #    obj.size = blob['area']
-            #    tracked_objects.append(obj)
-            #self.trial_scheduler.update(elapsed_time)
-            #self.process_regions(ros_time_now, elapsed_time, tracked_objects)
-            #bgr_image = cv2.cvtColor(image,cv2.COLOR_GRAY2BGR)
+            tracked_objects = []
+            for i, blob in enumerate(blob_list):
+                obj = TrackedObject()  # Replace this with simple class
+                obj.position.x = blob['centroidX']
+                obj.position.y = blob['centroidY']
+                obj.size = blob['area']
+                #rospy.logwarn('  {},  {}'.format(i, blob['area']))
+                tracked_objects.append(obj)
+            self.trial_scheduler.update(elapsed_time)
+            self.process_regions(ros_time_now, elapsed_time, tracked_objects)
+            bgr_image = cv2.cvtColor(image,cv2.COLOR_GRAY2BGR)
 
-            ## Old region visualizer
-            ## -----------------------------------------------------------------------------------
-            ##if count%1==0:
-            ##    self.region_visualizer.update(elapsed_time, bgr_image, self.trial_scheduler)
-            ## -----------------------------------------------------------------------------------
+            if self.visualizer_on:
+                # Old region visualizer
+                # -----------------------------------------------------------------------------------
+                #if frame_proc_count%1==0:
+                #    self.region_visualizer.update(elapsed_time, bgr_image, self.trial_scheduler)
+                # -----------------------------------------------------------------------------------
 
-            ## New region visualizer
-            ## -----------------------------------------------------------------------------------
-            #visualizer_data = {
-            #        'elapsed_time'    : elapsed_time,
-            #        'bgr_image'       : bgr_image,
-            #        'trial_scheduler' : self.trial_scheduler
-            #        }
-            #self.region_visualizer_queue.put(visualizer_data)
-            #rospy.logwarn('qsize = {}'.format(self.region_visualizer_queue.qsize()))
-            ## -----------------------------------------------------------------------------------
+                # New region visualizer
+                # -----------------------------------------------------------------------------------
+                visualizer_data = {
+                        'elapsed_time'    : elapsed_time,
+                        'bgr_image'       : bgr_image,
+                        'trial_scheduler' : self.trial_scheduler
+                        }
+                self.region_visualizer_queue.put(visualizer_data)
+                # -----------------------------------------------------------------------------------
 
-            count += 1
+            frame_proc_count += 1
             if self.trial_scheduler.done:
                 # Call ROS shutdown
                 break

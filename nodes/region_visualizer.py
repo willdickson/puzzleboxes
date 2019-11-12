@@ -33,9 +33,17 @@ class RegionVisualizer(object):
                 (True,  True)  : self.red,
                 }
                 
-        self.object_radius = 30 
-        self.object_linewidth_thin = 3
-        self.object_linewidth_thick = 5
+        #self.object_radius = 30 
+        #self.object_linewidth_thin = 3
+        #self.object_linewidth_thick = 5
+        #self.classifier_color = self.yellow
+        #self.classifier_off_color = self.white
+        #self.classifier_thickness = 2
+        #self.bounding_box_linewidth = 2
+
+        self.object_radius = 15 
+        self.object_linewidth_thin = 2
+        self.object_linewidth_thick = 3
         self.classifier_color = self.yellow
         self.classifier_off_color = self.white
         self.classifier_thickness = 2
@@ -45,11 +53,18 @@ class RegionVisualizer(object):
         self.centers_count = 0
 
         self.font = cv2.FONT_HERSHEY_SIMPLEX
-        self.fontsize = 1.0
-        self.fontsize_large = 1.5
-        self.fontthickness = 2
-        self.fontthickness_thick = 3
-        self.text_offset = 5
+
+        #self.fontsize = 1.0
+        #self.fontsize_large = 1.5
+        #self.fontthickness = 2
+        #self.fontthickness_thick = 3
+        #self.text_offset = 5
+
+        self.fontsize = 0.5
+        self.fontsize_large = 0.75 
+        self.fontthickness = 1
+        self.fontthickness_thick = 2 
+        self.text_offset = 2 
 
 
     def run(self):
@@ -78,11 +93,14 @@ class RegionVisualizer(object):
         if self.is_first_image: 
             # Setup opencv plotting windows
             cv2.namedWindow(self.window_name,cv2.WINDOW_AUTOSIZE)
-            cv2.moveWindow(self.window_name, 100, 100)
-            #cv2.resizeWindow(self.window_name, 800,600) self.is_first_image = False if self.find_centers:
-            #cv2.namedWindow('centers_image',cv2.WINDOW_NORMAL)
-            #cv2.moveWindow('centers_image', 120, 120)
-            #cv2.resizeWindow('centers_image', 800,600)
+            #cv2.namedWindow(self.window_name,cv2.WINDOW_NORMAL)
+            #cv2.moveWindow(self.window_name, 100, 100)
+            #cv2.resizeWindow(self.window_name, 800,600) 
+            self.is_first_image = False 
+            #if self.find_centers:
+                #cv2.namedWindow('centers_image',cv2.WINDOW_NORMAL)
+                #cv2.moveWindow('centers_image', 120, 120)
+                #cv2.resizeWindow('centers_image', 800,600)
         
         self.display_text = {}
                 
