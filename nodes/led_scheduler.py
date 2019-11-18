@@ -49,14 +49,14 @@ class LedScheduler(DefaultParamObj):
     def led_on(self):
         if not self.state:
             self.state  = True
-            index = self.param['index']
+            lednum = self.param['lednum']
             brightness = self.led_scheduler_param['brightness']
-            self.devices['led_controller'].set_led(index,brightness)
+            self.devices['led_controller'].set_led(lednum,brightness)
 
     def led_off(self,force=False):
         if self.state or force:
             self.state = False
-            self.devices['led_controller'].set_led(self.param['index'],0)
+            self.devices['led_controller'].set_led(self.param['lednum'],0)
 
     def update(self, t, current_object, classifier_state):
         pass

@@ -33,14 +33,6 @@ class RegionVisualizer(object):
                 (True,  True)  : self.red,
                 }
                 
-        #self.object_radius = 30 
-        #self.object_linewidth_thin = 3
-        #self.object_linewidth_thick = 5
-        #self.classifier_color = self.yellow
-        #self.classifier_off_color = self.white
-        #self.classifier_thickness = 2
-        #self.bounding_box_linewidth = 2
-
         self.object_radius = 15 
         self.object_linewidth_thin = 2
         self.object_linewidth_thick = 3
@@ -54,19 +46,12 @@ class RegionVisualizer(object):
 
         self.font = cv2.FONT_HERSHEY_SIMPLEX
 
-        #self.fontsize = 1.0
-        #self.fontsize_large = 1.5
-        #self.fontthickness = 2
-        #self.fontthickness_thick = 3
-        #self.text_offset = 5
-
         self.fontsize = 0.5
         self.fontsize_large = 0.75 
         self.fontthickness = 1
         self.fontthickness_thick = 2 
-        self.text_offset = 2 
-
-
+        self.text_offset = 3 
+        
     def run(self):
         while not self.done:
             data = None
@@ -79,7 +64,7 @@ class RegionVisualizer(object):
                 continue
             self.update(data)
 
-        
+    
     #def update(self, elapsed_time, image, trial_scheduler):
     def update(self, data): 
 
@@ -112,7 +97,7 @@ class RegionVisualizer(object):
             self.draw_object(image, tracking_region)
 
         self.draw_display_text(image, elapsed_time, trial_scheduler, self.display_text)
-
+	
         if self.param['use_compressed_images']:
             n,m,c = image.shape
             ns, ms = int(n*self.param['display_scale']), int(m*self.param['display_scale'])
@@ -254,7 +239,6 @@ class RegionVisualizer(object):
             color = self.classifier_color
         else:
             color = self.classifier_off_color
-        offset = 6
         if classifier_type == 'center':
             cx = tracking_region.param['center']['cx']
             cy = tracking_region.param['center']['cy']
