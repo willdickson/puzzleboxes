@@ -261,7 +261,7 @@ class PuzzleBoxes(object):
                     dt = current_time - last_time 
                     last_time = current_time
                     msg_tuple = (1.0/dt, float(frame_proc_count)/float(queue_get_count), frame_proc_count, queue_get_count, dropped_frames)
-                    rospy.logwarn('new_image, {:1.2f}, {:1.3f},  {}, {}, {}'.format(*msg_tuple))
+                    #rospy.logwarn('new_image, {:1.2f}, {:1.3f},  {}, {}, {}'.format(*msg_tuple))
             # -----------------------------------------------------------------------------
 
             diff_image = cv2.absdiff(image,self.bg_image)

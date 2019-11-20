@@ -256,6 +256,7 @@ class RegionVisualizer(object):
             cy = tracking_region.param['center']['cy']
             radius = classifier_param['radius']
             outer_radius = classifier_param['outer_radius']
+            rospy.logwarn(radius)
             tunnels = classifier_param['tunnels']
 #            if 'left' in tunnels:
 #                x = cx - radius
