@@ -112,7 +112,9 @@ class PuzzleBoxes(object):
             rospy.logwarn('param file = {}'.format(param_file_path))
             with open(param_file_path,'r') as f:
                 self.param = yaml.load(f)
-
+        else:
+            rospy.logwarn('param file = {}'.format(self.param['trial_param_file'])) 
+  
         self.load_region_centers()
         self.load_ledmap()
         self.load_trial_param_from_csv()
@@ -148,6 +150,7 @@ class PuzzleBoxes(object):
                         'type'  :  df['LED Policy'][i].lower(), 
                         'param' :  df['LED Policy Param'][i].lower(),
                         }
+                protocol['notes']= df['Notes'][i]
             else:
                 protocol['fly'] = '' 
                 protocol['classifier'] = {'type': 'empty', 'param': '{}'}
