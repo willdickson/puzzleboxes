@@ -8,9 +8,8 @@ import Queue
 
 class RegionVisualizer(object):
 
-    def __init__(self,tracking_region_list,param,data_queue):
+    def __init__(self,param,data_queue=None):
 
-        self.tracking_region_list = tracking_region_list
         self.param = param
         self.data_queue = data_queue
         self.done = False
@@ -71,6 +70,7 @@ class RegionVisualizer(object):
         elapsed_time = data['elapsed_time'] 
         image = data['bgr_image']
         trial_scheduler = data['trial_scheduler']
+        tracking_region_list = data['tracking_region_list']
 
         if image is None:
             return
@@ -89,7 +89,7 @@ class RegionVisualizer(object):
         
         self.display_text = {}
                 
-        for tracking_region in self.tracking_region_list:
+        for tracking_region in tracking_region_list:
             color = self.determine_region_color(tracking_region)
             self.annotate_region(image,tracking_region, self.display_text, color)
             self.draw_bounding_box(image,tracking_region, color)

@@ -1,0 +1,4 @@
+<launch>
+    <node pkg="puzzleboxes" name="puzzleboxes" type="puzzleboxes_multiobj_node.py">
+    </node>
+</launch>
