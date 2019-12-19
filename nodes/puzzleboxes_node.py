@@ -25,7 +25,7 @@ class PuzzleBoxes(PuzzleBoxesBase):
         current_time = frame_data['current_time']
         elapsed_time = frame_data['elapsed_time']
         image = frame_data['image']
-        diff_image = frame_data['image']
+        diff_image = frame_data['diff_image']
 
         blob_list, blob_image = self.blob_finder.find(diff_image)
         #cv2.imshow('image', image)
