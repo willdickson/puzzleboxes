@@ -28,8 +28,6 @@ from sensor_msgs.msg import Image
 from sensor_msgs.msg import CompressedImage
 from cv_bridge import CvBridge, CvBridgeError
 
-from puzzleboxes.msg import PuzzleboxesData
-from puzzleboxes.msg import RegionData
 
 
 class PuzzleBoxesBase(object):
@@ -92,7 +90,6 @@ class PuzzleBoxesBase(object):
             self.bg_image = cv2.cvtColor(bg_image_tmp,cv2.COLOR_BGR2GRAY)
 
         # Create publishers
-        self.data_pub = rospy.Publisher('/puzzleboxes_data', PuzzleboxesData, queue_size=10) 
         self.param_pub = rospy.Publisher('/puzzleboxes_param', std_msgs.msg.String,queue_size=10)
         self.bg_image_pub = rospy.Publisher('/puzzleboxes_bg_image', Image, queue_size=10)
         self.param_pub_count = 0

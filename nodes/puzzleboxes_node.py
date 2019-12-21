@@ -5,6 +5,7 @@ from blob_finder import BlobFinder
 from puzzleboxes_base import PuzzleBoxesBase
 from puzzleboxes_base import TrackedObject 
 from puzzleboxes_base import ObjectPosition 
+
 from puzzleboxes.msg import PuzzleboxesData
 from puzzleboxes.msg import RegionData
 
@@ -18,6 +19,7 @@ class PuzzleBoxes(PuzzleBoxesBase):
                 minArea=self.param['tracking']['min_area'], 
                 maxArea=self.param['tracking']['max_area'],
                 )
+        self.data_pub = rospy.Publisher('/puzzleboxes_data', PuzzleboxesData, queue_size=10) 
 
     def process_frame(self,frame_data): 
 
@@ -33,7 +35,6 @@ class PuzzleBoxes(PuzzleBoxesBase):
         #cv2.imshow('diff', diff_image)
         ##cv2.imshow('blob', blob_image)
         #cv2.waitKey(1)
-
         ## Devel
         ## -----------------------------------------------------------------------------
         #rospy.logwarn('len(blob_list) = {}'.format(len(blob_list)))

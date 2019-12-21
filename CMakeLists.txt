@@ -51,6 +51,8 @@ catkin_python_setup()
    FILES
    PuzzleboxesData.msg
    RegionData.msg
+   PuzzleboxesFlyAndOneBallData.msg
+   FlyAndOneBallRegionData.msg
  )
 
 ## Generate services in the 'srv' folder

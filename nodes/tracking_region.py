@@ -5,6 +5,7 @@ from operator import attrgetter
 from protocol import Protocol
 
 from puzzleboxes.msg import RegionData
+from puzzleboxes.msg import FlyAndOneBallRegionData
 
 class TrackingRegion(RectRegion):
 
@@ -36,8 +37,8 @@ class TrackingRegion(RectRegion):
             self.obj = max(contained_obj_list, key=attrgetter('size'))
         else:
             self.obj = None
-        self.protocol.update(t, self.obj, led_enabled)
-
+        obj_dict = {'fly' : self.obj}
+        self.protocol.update(t, obj_dict, led_enabled)
 
         msg = RegionData()
         if self.obj is not None:
@@ -51,6 +52,35 @@ class TrackingRegion(RectRegion):
         msg.classifier = self.protocol.classifier.state
         msg.led = self.protocol.led_scheduler.state
         return msg
+
+
+class FlyAndOneBallTrackingRegion(TrackingRegion):
+
+    def __init__(self, region):
+        self.param = dict(region.param)
+        self.devices = region.devices
+        self.protocol = region.protocol
+        self.obj_dict = {'fly': None, 'ball': None}
+
+    def update(self, t, obj_dict, led_enabled):
+        self.obj_dict = obj_dict
+        self.protocol.update(t, self.obj_dict, led_enabled)
+        msg = FlyAndOneBallRegionData()
+        if obj_dict:
+            msg.object_found = True
+            msg.fly_x = obj_dict['fly'].centroid[1]
+            msg.fly_y = obj_dict['fly'].centroid[0]
+            msg.ball_x = obj_dict['ball'].centroid[1]
+            msg.ball_y = obj_dict['ball'].centroid[0]
+        else:
+            msg.object_found = False
+        msg.classifier = self.protocol.classifier.state
+        msg.led = self.protocol.led_scheduler.state
+        return msg
+
+
+
+
 
 
 

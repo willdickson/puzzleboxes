@@ -6,7 +6,8 @@ class CenterClassifier(Classifier):
     def __init__(self,param):
         super(CenterClassifier,self).__init__(param)
 
-    def update(self,t,current_object):
+    def update(self,t,obj_dict):
+        current_object = obj_dict['fly']
         if current_object is not None:
             x = current_object.position.x
             y = current_object.position.y

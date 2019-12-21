@@ -216,19 +216,41 @@ class RegionVisualizer(object):
         return image
 
     def draw_object(self, image, tracking_region): 
-        if tracking_region.obj is not None:
-            x = int(tracking_region.obj.position.x)
-            y = int(tracking_region.obj.position.y)
-            classifier_state = tracking_region.protocol.classifier.state
-            led_state = tracking_region.protocol.led_scheduler.state
-            object_color = self.states_to_object_color[(classifier_state,led_state)]
-            if led_state or classifier_state:
-                object_linewidth = self.object_linewidth_thick
-            else:
-                object_linewidth = self.object_linewidth_thin
-            cv2.circle(image, (x,y), self.object_radius, object_color, object_linewidth)
+
+        classifier_state = tracking_region.protocol.classifier.state
+        led_state = tracking_region.protocol.led_scheduler.state
+
+        if hasattr(tracking_region, 'obj'):
+            if tracking_region.obj is not None:
+                x = int(tracking_region.obj.position.x)
+                y = int(tracking_region.obj.position.y)
+                object_color = self.states_to_object_color[(classifier_state,led_state)]
+                if led_state or classifier_state:
+                    object_linewidth = self.object_linewidth_thick
+                else:
+                    object_linewidth = self.object_linewidth_thin
+                cv2.circle(image, (x,y), self.object_radius, object_color, object_linewidth)
+
+        if hasattr(tracking_region, 'obj_dict'):
+            if tracking_region.obj_dict:
+                fly_color = self.states_to_object_color[(classifier_state,led_state)]
+                if led_state or classifier_state:
+                    object_linewidth = self.object_linewidth_thick
+                else:
+                    object_linewidth = self.object_linewidth_thin
 
 
+                if tracking_region.obj_dict['ball'] is not None:
+                    ball = tracking_region.obj_dict['ball']
+                    ball_x = int(ball.centroid[1]) + tracking_region.x0
+                    ball_y = int(ball.centroid[0]) + tracking_region.y0
+                    cv2.circle(image, (ball_x,ball_y), self.object_radius, (0,0,0), object_linewidth)
+
+                if tracking_region.obj_dict['fly'] is not None:
+                    fly = tracking_region.obj_dict['fly']
+                    fly_x = int(fly.centroid[1]) + tracking_region.x0
+                    fly_y = int(fly.centroid[0]) + tracking_region.y0
+                    cv2.circle(image, (fly_x,fly_y), self.object_radius, fly_color, object_linewidth)
         
     def draw_classifier(self, image, tracking_region):
         classifier_type = tracking_region.protocol.classifier.type

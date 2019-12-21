@@ -33,7 +33,7 @@ class BaseObjectFinder(object):
         props_list = skimage.measure.regionprops(frame_labels)
         props_list = [p for p in props_list if (p.major_axis_length > 0 and p.minor_axis_length > 0)] 
 
-        self.find_objects(frame_gray, props_list)
+        return self.find_objects(frame_gray, props_list)
 
 
 
@@ -52,12 +52,8 @@ class FlyAndOneBallFinder(BaseObjectFinder):
                 'fly' : (  0,   0, 255),
                 'ball': (255,   0,   0),
                 }
-        self.area_threshold = 400
 
     def find_objects(self, frame_gray, props_list):
-
-        frame_viz = cv2.cvtColor(frame_gray, cv2.COLOR_GRAY2BGR)
-
         area_and_props_list = [(item.area, item) for item in props_list]
         area_and_props_list.sort(reverse=True)
         props_list = [props for (area,props) in area_and_props_list]
@@ -65,7 +61,7 @@ class FlyAndOneBallFinder(BaseObjectFinder):
         if len(props_list) > 2:
             props_list = props_list[:2]
 
-        if 1:
+        if 0:
             for i, item in enumerate(props_list):
                 ax_ratio = item.major_axis_length/item.minor_axis_length
                 print('i: {}'.format(i))
@@ -75,24 +71,27 @@ class FlyAndOneBallFinder(BaseObjectFinder):
             print()
 
         obj_props_dict = {}
-
         if len(props_list) == 2:
-
             ball_props = props_list[0]
             self.obj_stats_dict['ball'].update(ball_props)
-
             fly_props = props_list[1]
             self.obj_stats_dict['fly'].update(fly_props)
 
-            obj_props_dict['fly'] = fly_props
-            obj_props_dict['ball'] = ball_props
 
         if len(props_list) == 1:
-            props = props_list[0]
-            obj_props_dict['fly'] = props 
-            obj_props_dict['ball'] = props
+            fly_props = props_list[0]
+            ball_props = props_list[0]
 
-        cv2.imshow('frame_viz', frame_viz)
+        obj_props_dict['fly'] = fly_props
+        obj_props_dict['ball'] = ball_props
+
+        #frame_viz = cv2.cvtColor(frame_gray, cv2.COLOR_GRAY2BGR)
+        #fly_pos = (int(fly_props.centroid[1]), int(fly_props.centroid[0]))
+        #cv2.circle(frame_viz, fly_pos, self.circle_size, self.color_dict['fly'], self.circle_thickness)
+        #ball_pos = (int(ball_props.centroid[1]), int(ball_props.centroid[0]))
+        #cv2.circle(frame_viz, ball_pos, self.circle_size, self.color_dict['ball'], self.circle_thickness)
+        #cv2.imshow('frame_viz', frame_viz)
+        #cv2.waitKey(1)
 
         return obj_props_dict
 

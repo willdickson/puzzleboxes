@@ -1,7 +1,10 @@
 from __future__ import print_function
+
 from empty_classifier import EmptyClassifier
 from center_classifier import CenterClassifier
 from tunnels_classifier import TunnelsClassifier
+from ficfruit_touch_classifier import FicFruitTouchClassifier
+
 from empty_led_scheduler import EmptyLedScheduler
 from pulse_led_scheduler import PulseLedScheduler
 from instant_led_scheduler import InstantLedScheduler
@@ -9,9 +12,10 @@ from instant_led_scheduler import InstantLedScheduler
 class Protocol(object):
 
     ClassifierTable = {
-            'empty'  :  EmptyClassifier,
-            'center' :  CenterClassifier,
-            'tunnels':  TunnelsClassifier,
+            'empty'         : EmptyClassifier,
+            'center'        : CenterClassifier,
+            'tunnels'       : TunnelsClassifier,
+            'ficfruit_touch': FicFruitTouchClassifier, 
              
             }
 
@@ -38,9 +42,9 @@ class Protocol(object):
         led_scheduler_type = self.param['protocol']['led_policy']['type']
         self.led_scheduler = self.LedSchedulerTable[led_scheduler_type](self.param,self.devices)
 
-    def update(self,t,current_object,led_enabled):
-        self.classifier.update(t,current_object)
+    def update(self,t,obj_dict,led_enabled):
+        self.classifier.update(t, obj_dict)
         if led_enabled:
-            self.led_scheduler.update(t,current_object,self.classifier.state)
+            self.led_scheduler.update(t, obj_dict, self.classifier.state)
         else:
             self.led_scheduler.led_off()

@@ -7,7 +7,7 @@ class PulseLedScheduler(LedScheduler):
         super(PulseLedScheduler,self).__init__(param,devices)
         self.last_on_t  = 0.0
 
-    def update(self, t, current_object, classifier_state):
+    def update(self, t, obj_dict, classifier_state):
         if self.state:
             if (t - self.last_on_t) > self.led_scheduler_param['on_t']:
                 self.led_off()
