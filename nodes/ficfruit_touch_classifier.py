@@ -17,8 +17,8 @@ class FicFruitTouchClassifier(Classifier):
 
         fly = obj_dict['fly']
         ball = obj_dict['ball']
-        fly_pos = np.array(fly.centroid)
-        ball_pos = np.array(ball.centroid)
+        fly_pos = np.array([fly['centroidY'], fly['centroidX']])
+        ball_pos = np.array([ball['centroidY'], ball['centroidX']])
         dist = np.sqrt(((fly_pos - ball_pos)**2).sum())
 
         if dist <= self.classifier_param['distance']:

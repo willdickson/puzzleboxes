@@ -51,22 +51,17 @@ class RegionVisualizer(object):
         self.fontthickness_thick = 2 
         self.text_offset = 3 
         
+
     def run(self):
         while not self.done:
             data = None
-            while True:
-                try:
-                    data = self.data_queue.get_nowait()
-                except Queue.Empty:
-                    break
-            if data is None:
-                continue
-            self.update(data)
-
+            while self.data_queue.qsize() > 0:
+                data = self.data_queue.get()
+            if data is not None:
+                self.update(data)
     
-    #def update(self, elapsed_time, image, trial_scheduler):
-    def update(self, data): 
 
+    def update(self, data): 
         elapsed_time = data['elapsed_time'] 
         image = data['bgr_image']
         trial_scheduler = data['trial_scheduler']
@@ -242,14 +237,14 @@ class RegionVisualizer(object):
 
                 if tracking_region.obj_dict['ball'] is not None:
                     ball = tracking_region.obj_dict['ball']
-                    ball_x = int(ball.centroid[1]) + tracking_region.x0
-                    ball_y = int(ball.centroid[0]) + tracking_region.y0
+                    ball_x = int(ball['centroidX']) + tracking_region.x0
+                    ball_y = int(ball['centroidY']) + tracking_region.y0
                     cv2.circle(image, (ball_x,ball_y), self.object_radius, (0,0,0), object_linewidth)
 
                 if tracking_region.obj_dict['fly'] is not None:
                     fly = tracking_region.obj_dict['fly']
-                    fly_x = int(fly.centroid[1]) + tracking_region.x0
-                    fly_y = int(fly.centroid[0]) + tracking_region.y0
+                    fly_x = int(fly['centroidX']) + tracking_region.x0
+                    fly_y = int(fly['centroidY']) + tracking_region.y0
                     cv2.circle(image, (fly_x,fly_y), self.object_radius, fly_color, object_linewidth)
         
     def draw_classifier(self, image, tracking_region):

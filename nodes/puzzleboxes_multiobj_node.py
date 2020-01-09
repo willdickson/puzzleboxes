@@ -2,6 +2,7 @@
 from __future__ import print_function
 import cv2
 import rospy
+import time
 from puzzleboxes_base import PuzzleBoxesBase
 from tracking_region import FlyAndOneBallTrackingRegion
 from object_finder import FlyAndTwoBallFinder 
@@ -15,7 +16,7 @@ class PuzzleBoxesMultiObj(PuzzleBoxesBase):
     def __init__(self):
         super(PuzzleBoxesMultiObj,self).__init__()
         self.upgrade_tracking_regions()
-        self.object_finder = FlyAndOneBallFinder()
+        self.object_finder = FlyAndOneBallFinder(self.param)
         self.data_pub = rospy.Publisher('/puzzleboxes_data', PuzzleboxesFlyAndOneBallData, queue_size=10) 
 
     def upgrade_tracking_regions(self):
@@ -34,13 +35,16 @@ class PuzzleBoxesMultiObj(PuzzleBoxesBase):
         diff_image = frame_data['diff_image']
 
         region_image_list = self.get_region_images(diff_image)
+        #t0 = time.time()
         self.process_regions(ros_time_now, elapsed_time, region_image_list)
+        #t1 = time.time()
+        #dt = t1 - t0
+        #rospy.logwarn('dt = {:1.4f}'.format(dt))
 
         if self.visualizer_on:
-            bgr_image = cv2.cvtColor(image,cv2.COLOR_GRAY2BGR)
             visualizer_data = {
                     'elapsed_time'         : elapsed_time,
-                    'bgr_image'            : bgr_image,
+                    'bgr_image'            : frame_data['bgr_image'],
                     'trial_scheduler'      : self.trial_scheduler,
                     'tracking_region_list' : self.tracking_region_list,
                     }
@@ -60,10 +64,12 @@ class PuzzleBoxesMultiObj(PuzzleBoxesBase):
         msg.led_enabled = led_enabled
         msg.queue_overflow = self.queue_overflow
         msg.queue_size = self.image_queue.qsize() 
-        for region, region_image in zip(self.tracking_region_list,region_image_list):
-            obj_dict = self.object_finder.update(region_image)
-            region_data = region.update(elapsed_time, obj_dict, led_enabled)
-            msg.region_data_list.append(region_data)
+        for region, region_image in zip(self.tracking_region_list,region_image_list): 
+            #if True:
+            if region.param['index'] == 1:
+                obj_dict = self.object_finder.update(region_image)
+                region_data = region.update(elapsed_time, obj_dict, led_enabled)
+                msg.region_data_list.append(region_data)
         self.data_pub.publish(msg)
 
 

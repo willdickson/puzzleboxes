@@ -68,10 +68,10 @@ class FlyAndOneBallTrackingRegion(TrackingRegion):
         msg = FlyAndOneBallRegionData()
         if obj_dict:
             msg.object_found = True
-            msg.fly_x = obj_dict['fly'].centroid[1]
-            msg.fly_y = obj_dict['fly'].centroid[0]
-            msg.ball_x = obj_dict['ball'].centroid[1]
-            msg.ball_y = obj_dict['ball'].centroid[0]
+            msg.fly_x = obj_dict['fly']['centroidX']
+            msg.fly_y = obj_dict['fly']['centroidY']
+            msg.ball_x = obj_dict['ball']['centroidX']
+            msg.ball_y = obj_dict['ball']['centroidY']
         else:
             msg.object_found = False
         msg.classifier = self.protocol.classifier.state

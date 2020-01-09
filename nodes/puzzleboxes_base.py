@@ -243,6 +243,7 @@ class PuzzleBoxesBase(object):
                 image = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2GRAY)
             else:
                 image = self.bridge.imgmsg_to_cv2(image_msg,desired_encoding='mono8')
+                image_bgr = cv2.cvtColor(image,cv2.COLOR_GRAY2BGR)
 
             ros_time_now = rospy.Time.now()
             current_time = ros_time_now.to_time()
@@ -255,7 +256,7 @@ class PuzzleBoxesBase(object):
                     dt = current_time - last_time 
                     last_time = current_time
                     msg_tuple = (1.0/dt, float(frame_proc_count)/float(queue_get_count), frame_proc_count, queue_get_count, dropped_frames)
-                    #rospy.logwarn('new_image, {:1.2f}, {:1.3f},  {}, {}, {}'.format(*msg_tuple))
+                    rospy.logwarn('new_image, {:1.2f}, {:1.3f},  {}, {}, {}'.format(*msg_tuple))
 
             self.trial_scheduler.update(elapsed_time)
 
@@ -266,6 +267,7 @@ class PuzzleBoxesBase(object):
                     'current_time' : current_time,
                     'elapsed_time' : elapsed_time,
                     'image'        : image,
+                    'bgr_image'    : image_bgr,
                     'diff_image'   : diff_image,
                     }
 

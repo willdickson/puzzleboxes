@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
 import cv2
+import rospy
 from blob_finder import BlobFinder
 from puzzleboxes_base import PuzzleBoxesBase
 from puzzleboxes_base import TrackedObject 
@@ -49,12 +50,12 @@ class PuzzleBoxes(PuzzleBoxesBase):
             #rospy.logwarn('  {},  {}'.format(i, blob['area']))
             tracked_objects.append(obj)
         self.process_regions(ros_time_now, elapsed_time, tracked_objects)
-        bgr_image = cv2.cvtColor(image,cv2.COLOR_GRAY2BGR)
+        #bgr_image = cv2.cvtColor(image,cv2.COLOR_GRAY2BGR)
 
         if self.visualizer_on:
             visualizer_data = {
                     'elapsed_time'         : elapsed_time,
-                    'bgr_image'            : bgr_image,
+                    'bgr_image'            : frame_data['bgr_image'],
                     'trial_scheduler'      : self.trial_scheduler,
                     'tracking_region_list' : self.tracking_region_list,
                     }
