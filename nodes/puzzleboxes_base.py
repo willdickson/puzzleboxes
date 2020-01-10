@@ -89,6 +89,20 @@ class PuzzleBoxesBase(object):
             bg_image_tmp = cv2.imread(self.param['regions']['bg_image_file'])
             self.bg_image = cv2.cvtColor(bg_image_tmp,cv2.COLOR_BGR2GRAY)
 
+        # Load mask image
+        mask_file_basename, mask_file_ext = os.path.splitext(self.param['regions']['mask_image_file'])
+        if mask_file_ext == '.npy':
+            self.mask_image = np.load(self.param['regions']['mask_image_file'])
+        else:
+            mask_image_tmp = cv2.imread(self.param['regions']['mask_image_file'])
+            self.mask_image = cv2.cvtColor(mask_image_tmp, cv2.COLOR_BGR2GRAY)
+
+        # Erode mask image a bit to remove bright stuff on edges of arenas
+        erode_kernel_size = tuple(self.param['regions']['mask_erode']['kernel_size'])
+        erode_kernel = np.ones(erode_kernel_size, np.uint8)
+        erode_iterations = self.param['regions']['mask_erode']['iterations']
+        self.mask_image = cv2.erode(self.mask_image, erode_kernel, iterations=erode_iterations)
+
         # Create publishers
         self.param_pub = rospy.Publisher('/puzzleboxes_param', std_msgs.msg.String,queue_size=10)
         self.bg_image_pub = rospy.Publisher('/puzzleboxes_bg_image', Image, queue_size=10)
@@ -261,6 +275,7 @@ class PuzzleBoxesBase(object):
             self.trial_scheduler.update(elapsed_time)
 
             diff_image = cv2.absdiff(image,self.bg_image)
+            masked_diff_image = cv2.bitwise_and(diff_image, self.mask_image)
 
             frame_data = {
                     'ros_time_now' : ros_time_now,
@@ -268,8 +283,13 @@ class PuzzleBoxesBase(object):
                     'elapsed_time' : elapsed_time,
                     'image'        : image,
                     'bgr_image'    : image_bgr,
-                    'diff_image'   : diff_image,
-                    }
+                    'diff_image'   : masked_diff_image,
+                    } 
+
+            #cv2.imshow('diff_image', diff_image)
+            #cv2.imshow('mask_image', self.mask_image)
+            #cv2.imshow('masked_diff', masked_diff_image)
+            #cv2.waitKey(1)
 
             self.process_frame(frame_data)
 

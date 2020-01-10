@@ -65,8 +65,8 @@ class PuzzleBoxesMultiObj(PuzzleBoxesBase):
         msg.queue_overflow = self.queue_overflow
         msg.queue_size = self.image_queue.qsize() 
         for region, region_image in zip(self.tracking_region_list,region_image_list): 
-            #if True:
-            if region.param['index'] == 1:
+            if True:
+            #if region.param['index'] == 20:
                 obj_dict = self.object_finder.update(region_image)
                 region_data = region.update(elapsed_time, obj_dict, led_enabled)
                 msg.region_data_list.append(region_data)

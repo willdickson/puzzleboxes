@@ -31,9 +31,15 @@ class CenterFinderNode(object):
         self.filter_coeff = rospy.get_param('/center_finder/filter_coeff', 0.05)
         self.center_disp_radius = rospy.get_param('/center_finder/center_disp_radius', 3)
         self.center_disp_thickness = rospy.get_param('/center_finder/center_disp_thickness', 2)
+
         default_output_file = os.path.join(os.path.abspath(os.curdir),'centers.yaml')
         self.output_file = rospy.get_param('/center_finder/output_file', default_output_file)
         self.input_file = rospy.get_param('/center_finder/input_file', None)
+
+        default_mask_npy_file = os.path.join(os.path.abspath(os.curdir),'mask.npy')
+        self.mask_npy_file = rospy.get_param('/center_finder/mask_file', default_mask_npy_file)
+        mask_npy_base_name, ext = os.path.splitext(self.mask_npy_file)
+        self.mask_jpg_file = '{}.jpg'.format(mask_npy_base_name)
 
         self.centers_window = 'centers'
         self.threshold_window = 'threshold'
@@ -87,7 +93,7 @@ class CenterFinderNode(object):
                 except Queue.Empty:
                     done = True
             if new_img is not None:
-                centers_img, threshold_img, gray_img = self.find_centers_from_img(new_img)
+                centers_img, centers_img_scaled, threshold_img, threshold_img_scaled, gray_img = self.find_centers_from_img(new_img)
                 if self.is_first_img:
                     cv2.namedWindow(self.threshold_window,cv2.WINDOW_NORMAL)
                     cv2.moveWindow(self.threshold_window, 200, 250)
@@ -97,14 +103,17 @@ class CenterFinderNode(object):
                     cv2.resizeWindow(self.centers_window, 800,600)
                     self.is_first_img = False 
 
-                cv2.imshow(self.centers_window,centers_img)
-                cv2.imshow(self.threshold_window,threshold_img)
+                cv2.imshow(self.centers_window,centers_img_scaled)
+                cv2.imshow(self.threshold_window,threshold_img_scaled)
                 cv2.waitKey(1)
 
         rospy.logwarn('saving center data to {}'.format(self.output_file))
-        with open(self.output_file,'w') as fid:
+        with open(self.output_file,'w') as f:
             filtered_centroid_list = [[int(np.round(x)),int(np.round(y))] for x, y in self.filtered_centroid_array]
-            yaml.dump(filtered_centroid_list, fid)
+            yaml.dump(filtered_centroid_list, f)
+
+        np.save(self.mask_npy_file, threshold_img)
+        cv2.imwrite(self.mask_jpg_file, threshold_img)
 
 
     def find_centers_from_img(self, image):
@@ -144,28 +153,26 @@ class CenterFinderNode(object):
             scale = self.display_scale
             n,m,c = contours_image.shape
             ns, ms = int(n*scale), int(m*scale)
-            contours_image = cv2.resize(contours_image,(ms,ns),0, 0, cv2.INTER_AREA)
-            threshold_image = cv2.resize(threshold_image,(ms,ns),0, 0, cv2.INTER_AREA)
+            contours_image_scaled = cv2.resize(contours_image,(ms,ns),0, 0, cv2.INTER_AREA)
+            threshold_image_scaled = cv2.resize(threshold_image,(ms,ns),0, 0, cv2.INTER_AREA)
         else:
             scale = 1.0
 
         for cx,cy in self.centroid_array:
-            cv2.circle(contours_image,(int(scale*cx),int(scale*cy)),self.center_disp_radius,self.center_color,self.center_disp_thickness)
+            cv2.circle(contours_image_scaled,(int(scale*cx),int(scale*cy)),self.center_disp_radius,self.center_color,self.center_disp_thickness)
 
         # Need to scale contours
         # -------------------------------------------------------------------------------------
         #if self.filtered_centroid_array is not None:
         #    for cx,cy in self.filtered_centroid_array:
         #        cv2.circle(
-        #                contours_image,
+        #                contours_image_scaled,
         #                (int(np.round(scale*cx)),int(np.round(scale*cy))),
         #                self.center_disp_radius,
         #                self.filtered_color
         #                )
         # -------------------------------------------------------------------------------------
-
-        rospy.logwarn(contours_image.shape)
-        return contours_image, threshold_image, image_gray 
+        return contours_image, contours_image_scaled, threshold_image, threshold_image_scaled, image_gray 
 
 
     def update_filtered_centroids(self):

@@ -19,8 +19,8 @@ class BlobFinder(object):
             rval, threshImage = cv2.threshold(image, self.threshold,255,cv2.THRESH_BINARY)
         _, contourList, _ = cv2.findContours(threshImage, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        cv2.imshow('threshold', threshImage)
-        cv2.waitKey(1)
+        #cv2.imshow('threshold', threshImage)
+        #cv2.waitKey(1)
         #rospy.logwarn('len(contourList): {}'.format(len(contourList)))
 
         # Find blob data
