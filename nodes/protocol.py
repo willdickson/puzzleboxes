@@ -2,6 +2,7 @@ from __future__ import print_function
 
 from empty_classifier import EmptyClassifier
 from center_classifier import CenterClassifier
+from roi_classifier import ROIClassifier
 from tunnels_classifier import TunnelsClassifier
 from ficfruit_touch_classifier import FicFruitTouchClassifier
 
@@ -14,6 +15,7 @@ class Protocol(object):
     ClassifierTable = {
             'empty'         : EmptyClassifier,
             'center'        : CenterClassifier,
+            'roi'           : ROIClassifier,
             'tunnels'       : TunnelsClassifier,
             'ficfruit_touch': FicFruitTouchClassifier, 
              

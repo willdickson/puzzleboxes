@@ -1,2 +1,2 @@
-from .puzzlebag_to_h5 import convert_to_h5  
-from .puzzlebag_to_h5 import main
+import .puzzlebag_to_h5
+import .puzzlebag_to_h5_multiobj

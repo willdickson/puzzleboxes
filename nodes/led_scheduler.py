@@ -40,6 +40,13 @@ class LedScheduler(DefaultParamObj):
     def type(self):
         return self.param['protocol']['led_policy']['type']
 
+    @property
+    def led_numbers(self):
+        led_numbers = self.param['protocol']['led_numbers']
+        if led_numbers == 'all':
+            return [n+1 for n in self.param['ledmap']]
+        else:
+            return yaml.load(led_numbers)
 
     def enabled(self,value):
         if self.state == True and value == False:
@@ -49,14 +56,19 @@ class LedScheduler(DefaultParamObj):
     def led_on(self):
         if not self.state:
             self.state  = True
-            lednum = self.param['lednum']
-            brightness = self.led_scheduler_param['brightness']
-            self.devices['led_controller'].set_led(lednum,brightness)
+            for lednum in self.led_numbers:
+                ledind = lednum-1
+                ledpin = self.param['ledmap'][ledind]
+                brightness = self.led_scheduler_param['brightness']
+                self.devices['led_controller'].set_led(ledpin,brightness)
 
     def led_off(self,force=False):
         if self.state or force:
             self.state = False
-            self.devices['led_controller'].set_led(self.param['lednum'],0)
+            for lednum in self.led_numbers:
+                ledind = lednum - 1
+                ledpin = self.param['ledmap'][ledind]
+                self.devices['led_controller'].set_led(ledpin,0)
 
     def update(self, t, current_object, classifier_state):
         pass

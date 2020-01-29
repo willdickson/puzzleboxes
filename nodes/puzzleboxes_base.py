@@ -164,6 +164,9 @@ class PuzzleBoxesBase(object):
                         'param' :  df['LED Policy Param'][i].lower(),
                         }
                 protocol['notes']= df['Notes'][i]
+
+                led_numbers = df['LED Number'][i]
+                protocol['led_numbers'] = led_numbers 
             else:
                 protocol['fly'] = '' 
                 protocol['classifier'] = {'type': 'empty', 'param': '{}'}
@@ -192,10 +195,9 @@ class PuzzleBoxesBase(object):
     def create_tracking_regions(self):
         self.tracking_region_list = []
         center_list =  self.param['regions']['centers']
-        ledmap_list = self.param['regions']['ledmap']
         protocol_list =  self.param['regions']['protocols']
-        for region_index, region_data in enumerate(zip(center_list, ledmap_list, protocol_list)):
-            region_center_pt, region_lednum, region_protocol = region_data
+        for region_index, region_data in enumerate(zip(center_list, protocol_list)):
+            region_center_pt, region_protocol = region_data
             cx, cy = region_center_pt
             # Get lower left and upper right corners of the tracking region
             x0 = int(cx - 0.5*self.param['regions']['width'])
@@ -204,7 +206,7 @@ class PuzzleBoxesBase(object):
             y1 = int(cy + 0.5*self.param['regions']['height'])
             region_param = {
                     'index'         :  region_index,
-                    'lednum'        :  region_lednum,
+                    'ledmap'        :  self.param['regions']['ledmap'],
                     'protocol'      :  region_protocol,
                     'center'        :  {'cx': cx, 'cy': cy, }, 
                     'roi'           :  {'x0': x0, 'x1': x1, 'y0': y0, 'y1': y1}, 
