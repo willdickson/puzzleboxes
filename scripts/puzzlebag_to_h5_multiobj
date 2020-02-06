@@ -1,5 +1,5 @@
 #!/usr/bin/env python
 import puzzlebag_to_h5
-puzzlebag_to_h5.puzzle_bag_to_h5_multiobj.main()
+puzzlebag_to_h5.puzzlebag_to_h5_multiobj.main()
 
 
