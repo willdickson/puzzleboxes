@@ -285,6 +285,15 @@ class RegionVisualizer(object):
             cy = tracking_region.param['center']['cy']+classifier_param['y_pos']
             for radius in [classifier_param['inner_radius'], classifier_param['outer_radius']]:
                 cv2.circle(image, (cx,cy), radius, color,self.classifier_thickness)
+        elif classifier_type == 'ficfruit_revisit':
+            if hasattr(tracking_region, 'obj_dict'):
+                if tracking_region.obj_dict['ball'] is not None:
+                    ball = tracking_region.obj_dict['ball']
+                    ball_x = int(ball['centroidX']) + tracking_region.x0
+                    ball_y = int(ball['centroidY']) + tracking_region.y0
+                    for radius in [classifier_param['inner_radius'], classifier_param['outer_radius']]:
+                        cv2.circle(image, (ball_x,ball_y), radius, color,self.classifier_thickness)
+
         elif classifier_type == 'tunnels':
             cx = tracking_region.param['center']['cx']
             cy = tracking_region.param['center']['cy']
