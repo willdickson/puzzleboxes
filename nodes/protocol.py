@@ -3,6 +3,7 @@ from __future__ import print_function
 from empty_classifier import EmptyClassifier
 from center_classifier import CenterClassifier
 from roi_classifier import ROIClassifier
+from rois_classifier import ROIsClassifier
 from roi_revisit_classifier import ROIRevisitClassifier
 from tunnels_classifier import TunnelsClassifier
 from ficfruit_touch_classifier import FicFruitTouchClassifier
@@ -13,6 +14,7 @@ from empty_led_scheduler import EmptyLedScheduler
 from pulse_led_scheduler import PulseLedScheduler
 from single_pulse_led_scheduler import SinglePulseLedScheduler
 from instant_led_scheduler import InstantLedScheduler
+from on_led_scheduler import OnLedScheduler
 
 class Protocol(object):
 
@@ -20,6 +22,7 @@ class Protocol(object):
             'empty'            : EmptyClassifier,
             'center'           : CenterClassifier,
             'roi'              : ROIClassifier,
+            'rois'             : ROIsClassifier,
             'roi_revisit'      : ROIRevisitClassifier,
             'tunnels'          : TunnelsClassifier,
             'ficfruit_touch'   : FicFruitTouchClassifier, 
@@ -31,6 +34,7 @@ class Protocol(object):
             'pulse'        : PulseLedScheduler,
             'single_pulse' : SinglePulseLedScheduler,
             'instant'      : InstantLedScheduler,
+            'always_on'    : OnLedScheduler,
             }
 
     def __init__(self,param, devices):

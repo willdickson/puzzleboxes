@@ -49,7 +49,7 @@ class TrackingRegion(RectRegion):
             msg.object_found = False
             msg.x = 0.0
             msg.y = 0.0
-        msg.classifier = self.protocol.classifier.state
+        msg.classifier = bool(self.protocol.classifier.state)
         msg.led = self.protocol.led_scheduler.state
         return msg
 

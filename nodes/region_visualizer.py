@@ -109,7 +109,7 @@ class RegionVisualizer(object):
         genotype_name = tracking_region.protocol.param['protocol']['fly']
         led_active = False
         control_fly = False
-        if led_scheduler_type in ('instant', 'pulse', 'single_pulse'):
+        if led_scheduler_type in ('instant', 'pulse', 'single_pulse','always_on'):
             led_active = True
         if 'HCS' in genotype_name or '+' in genotype_name:
             control_fly = True
@@ -132,7 +132,7 @@ class RegionVisualizer(object):
            }
             
         # annotate led type
-        if led_scheduler_type == 'instant' or led_scheduler_type == 'pulse':
+        if led_scheduler_type in ('instant', 'pulse', 'single_pulse','always_on'):
             led_scheduler_name = tracking_region.protocol.led_scheduler.led_scheduler_param['display_name']
             display_text[arena]['led']['text'] = led_scheduler_name
             text_size = cv2.getTextSize(led_scheduler_name, self.font, self.fontsize, self.fontthickness)
@@ -212,7 +212,7 @@ class RegionVisualizer(object):
 
     def draw_object(self, image, tracking_region): 
 
-        classifier_state = tracking_region.protocol.classifier.state
+        classifier_state = bool(tracking_region.protocol.classifier.state)
         led_state = tracking_region.protocol.led_scheduler.state
 
         if hasattr(tracking_region, 'obj'):
@@ -280,6 +280,20 @@ class RegionVisualizer(object):
                 bottom_left = (cx-width/2,cy+height/2)
                 top_right = (cx+width/2,cy-height/2)
                 cv2.rectangle(image, bottom_left, top_right, color,self.classifier_thickness)
+        elif classifier_type == 'rois':
+            positions = zip(classifier_param['x_pos'], classifier_param['y_pos'])
+            for position in positions:
+                cx = tracking_region.param['center']['cx']+position[0]
+                cy = tracking_region.param['center']['cy']+position[1]
+                if 'radius' in classifier_param:
+                    radius = classifier_param['radius']
+                    cv2.circle(image, (cx,cy), radius, color,self.classifier_thickness)
+                elif 'height' in classifier_param:
+                    height = classifier_param['height']
+                    width = classifier_param['width']
+                    bottom_left = (cx-width/2,cy+height/2)
+                    top_right = (cx+width/2,cy-height/2)
+                    cv2.rectangle(image, bottom_left, top_right, color,self.classifier_thickness)
         elif classifier_type == 'roi_revisit':
             cx = tracking_region.param['center']['cx']+classifier_param['x_pos']
             cy = tracking_region.param['center']['cy']+classifier_param['y_pos']

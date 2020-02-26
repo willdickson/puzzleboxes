@@ -147,7 +147,8 @@ class PuzzleBoxesBase(object):
     def load_trial_param_from_csv(self):
         df = pd.read_csv(self.param['trial_param_file'])
         num_centers = len(self.param['regions']['centers'])
-        assert df.shape[0] == num_centers, 'number of rows in {} must equal number of centers'.format(self.param['trial_param_file'])
+        
+        #assert df.shape[0] == num_centers, 'number of rows in {} must equal number of centers'.format(self.param['trial_param_file'])
 
         # Load protocol paramters
         protocol_list = []
