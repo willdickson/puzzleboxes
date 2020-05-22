@@ -3,12 +3,13 @@ from __future__ import print_function
 from empty_classifier import EmptyClassifier
 from center_classifier import CenterClassifier
 from roi_classifier import ROIClassifier
+from roi_inverted_classifier import ROIInvertedClassifier
 from rois_classifier import ROIsClassifier
 from roi_revisit_classifier import ROIRevisitClassifier
 from tunnels_classifier import TunnelsClassifier
+from tunnels_inverted_classifier import TunnelsInvertedClassifier
 from ficfruit_touch_classifier import FicFruitTouchClassifier
 from ficfruit_revisit_classifier import FicFruitRevisitClassifier
-
 
 from empty_led_scheduler import EmptyLedScheduler
 from pulse_led_scheduler import PulseLedScheduler
@@ -22,9 +23,11 @@ class Protocol(object):
             'empty'            : EmptyClassifier,
             'center'           : CenterClassifier,
             'roi'              : ROIClassifier,
+            'roi_inverted'     : ROIInvertedClassifier,
             'rois'             : ROIsClassifier,
             'roi_revisit'      : ROIRevisitClassifier,
             'tunnels'          : TunnelsClassifier,
+            'tunnels_inverted' : TunnelsInvertedClassifier,
             'ficfruit_touch'   : FicFruitTouchClassifier, 
             'ficfruit_revisit' : FicFruitRevisitClassifier,
             }

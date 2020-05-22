@@ -2,7 +2,7 @@ import math
 import numpy as np
 from classifier import Classifier
 
-class TunnelsClassifier(Classifier):
+class TunnelsInvertedClassifier(Classifier):
 
     tunnel_to_sign_dict = {
             'top_right'     : ( 1, -1),
@@ -12,7 +12,7 @@ class TunnelsClassifier(Classifier):
             }
 
     def __init__(self,param):
-        super(TunnelsClassifier,self).__init__(param)
+        super(TunnelsInvertedClassifier,self).__init__(param)
 
     def update(self, t, obj_dict):
         current_object = obj_dict['fly']
@@ -31,6 +31,6 @@ class TunnelsClassifier(Classifier):
                sx = np.sign(x-cx)
                sy = np.sign(y-cy)
                if (sx,sy) in tunnel_signs:
-                   self.state = True
+                   self.state = False
             else:
-                self.state = False
+                self.state = True

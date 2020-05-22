@@ -268,7 +268,7 @@ class RegionVisualizer(object):
                 bottom_left = (cx-width/2,cy+height/2)
                 top_right = (cx+width/2,cy-height/2)
                 cv2.rectangle(image, bottom_left, top_right, color,self.classifier_thickness)
-        elif classifier_type == 'roi':
+        elif 'roi' in classifier_type:
             cx = tracking_region.param['center']['cx']+classifier_param['x_pos']
             cy = tracking_region.param['center']['cy']+classifier_param['y_pos']
             if 'radius' in classifier_param:
@@ -308,7 +308,7 @@ class RegionVisualizer(object):
                     for radius in [classifier_param['inner_radius'], classifier_param['outer_radius']]:
                         cv2.circle(image, (ball_x,ball_y), radius, color,self.classifier_thickness)
 
-        elif classifier_type == 'tunnels':
+        elif 'tunnels' in classifier_type:
             cx = tracking_region.param['center']['cx']
             cy = tracking_region.param['center']['cy']
             radius = classifier_param['radius']
